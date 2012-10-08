@@ -1,5 +1,6 @@
 %{
 #include <stdio.h>
+static FILE *fp_out;
 %}
 
 %token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
@@ -434,6 +435,28 @@ char *s;
 
 int main(int argc, char **argv)
 {
+	FILE *fp_in;
+
+	if(argc != 3)
+	{
+		fprintf(stderr, "Wrong usage. Use `%s source destination`.\n\n", argv[0]);
+		return 1;
+	}
+
+	if((fp_in = fopen(argv[1], "r")) == NULL)
+	{
+		fprintf(stderr, "Error at opening file `%s` for reading.\n\n", argv[1]);
+		return 1;
+	}
+
+	if((fp_out = fopen(argv[2], "w")) == NULL)
+	{
+		fprintf(stderr, "Error at opening file `%s` for writing.\n\n", argv[2]);
+		return 1;
+	}
+
+	stdin = fp_in;
+
 	yyparse();
 	return 0;
 }
