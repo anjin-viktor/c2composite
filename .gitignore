@@ -4,3 +4,4 @@ trunk/unit_tests/unit_tests
 trunk/src/ansi.c.grammar.tab.c
 trunk/src/ansi.c.grammar.tab.h
 trunk/src/lex.yy.c
+trunk/unit_tests/util_test
