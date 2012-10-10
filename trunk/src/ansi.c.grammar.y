@@ -414,9 +414,21 @@ external_declaration
 
 function_definition
 	: declaration_specifiers declarator declaration_list compound_statement 
+	{
+		fprintf(stderr, "1");
+	}
 	| declaration_specifiers declarator compound_statement
-	| declarator declaration_list compound_statement 
+	{
+		fprintf(stderr, "2");
+	}
+	| declarator declaration_list compound_statement
+	{
+		fprintf(stderr, "3");
+	}
 	| declarator compound_statement 
+	{
+		fprintf(stderr, "4");
+	}
 	;
 
 %%
