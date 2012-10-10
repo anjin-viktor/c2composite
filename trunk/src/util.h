@@ -113,4 +113,20 @@ CompositeType type_composite_from_str(const char *str);
 char *type_composite_to_str(char *dst, CompositeType type, size_t n);
 
 
+/**
+Структура для представления функций
+*/
+
+typedef struct 
+{
+	char *name;
+	CompositeType rettype;
+	CompositeType *params;
+	size_t nparams;
+} function;
+
+
+/**
+*/
+
 #endif

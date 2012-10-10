@@ -3,6 +3,7 @@
 static FILE *fp_out;
 %}
 
+
 %token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
 %token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
@@ -14,6 +15,7 @@ static FILE *fp_out;
 %token STRUCT UNION ENUM ELLIPSIS
 
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
+
 
 %start translation_unit
 %%
@@ -414,21 +416,9 @@ external_declaration
 
 function_definition
 	: declaration_specifiers declarator declaration_list compound_statement 
-	{
-		fprintf(stderr, "1");
-	}
 	| declaration_specifiers declarator compound_statement
-	{
-		fprintf(stderr, "2");
-	}
 	| declarator declaration_list compound_statement
-	{
-		fprintf(stderr, "3");
-	}
 	| declarator compound_statement 
-	{
-		fprintf(stderr, "4");
-	}
 	;
 
 %%
