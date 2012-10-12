@@ -9,6 +9,9 @@ IS			(u|U|l|L)*
 #include <stdio.h>
 #include "ansi.c.grammar.tab.h"
 
+extern YYSTYPE yylval;
+
+
 void count();
 %}
 
@@ -59,7 +62,7 @@ L?'(\\.|[^\\'])+'	{ count(); return(CONSTANT); }
 {D}*"."{D}+({E})?{FS}?	{ count(); return(CONSTANT); }
 {D}+"."{D}*({E})?{FS}?	{ count(); return(CONSTANT); }
 
-L?\"(\\.|[^\\"])*\"	{ count(); return(STRING_LITERAL); }
+L?\"(\\.|[^\\"])*\"	{ count(); return(STRING_LITERAL); } 
 
 "..."			{ count(); return(ELLIPSIS); }
 ">>="			{ count(); return(RIGHT_ASSIGN); }
@@ -177,6 +180,9 @@ int check_type()
 /*
 *	it actually will only return IDENTIFIER
 */
+
+	yylval.s = malloc(sizeof(char) * strlen(yytext) + 1);
+	strcpy(yylval.s, yytext);
 
 	return(IDENTIFIER);
 }

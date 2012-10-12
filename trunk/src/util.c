@@ -341,3 +341,195 @@ char *type_composite_to_str(char *dst, CompositeType type, size_t n)
 
 	return dst;
 }
+
+
+static size_t size_of_function_header(function *func)
+{
+	char *type_buff;
+	int i;
+	size_t n = 0;
+	n += strlen(".name ");
+	n += strlen(func -> name);
+	n += 2;
+
+	for(i=0; i<func -> nparams; i++)
+	{
+		type_buff = type_composite_to_str(NULL, func -> param_types[i], 0);
+		n += strlen(type_buff);
+		free(type_buff);
+
+		n += strlen(func -> param_names[i]);
+		n += strlen(", ");
+		n += 8;
+	}
+
+	if(func -> rettype != COMPOSITE_NO_TYPE)
+	{
+		type_buff = type_composite_to_str(NULL, func -> rettype, 0);
+		n += strlen(type_buff);
+		n += 4;
+		free(type_buff);
+		n += strlen("&__ret_val__");
+	}
+
+	n += 16;
+	return n;
+}
+
+
+char *function_header(char *dst, function *func, size_t n)
+{
+	size_t len;
+	size_t cur_len;
+	char *type_buff;
+	char flag = 0;
+	int i=0;
+
+	if(dst == NULL)
+	{
+		n = size_of_function_header(func);
+		if((dst = malloc(sizeof(char) * n)) == NULL)
+			return NULL;
+	}
+	else if(n == 1)
+	{
+		dst[0] = '\0';
+		return dst;
+	}
+	else if(n == 0)
+		return NULL;
+
+
+	dst[0] = '\0';
+	len = 0;
+
+	strncpy(dst, ".name ", n);
+	cur_len = strlen(".name ");
+
+
+	if(cur_len > n)
+	{
+		dst[len+n-1] = '\0';
+		return dst;
+	}
+
+	len += cur_len;
+	n -= cur_len;
+
+	strncpy(dst + len, func -> name, n);
+	cur_len = strlen(func -> name);
+
+	if(cur_len > n)
+	{
+		dst[len+n-1] = '\0';
+		return dst;
+	}
+
+	len += cur_len;
+	n -= cur_len;
+
+	if(func -> rettype != COMPOSITE_NO_TYPE)
+	{
+		strncpy(dst + len, " ", n);
+		cur_len = strlen(" ");
+		if(cur_len > n)
+		{
+			dst[len+n-1] = '\0';
+			return dst;
+		}
+		len += cur_len;
+		n -= cur_len;
+
+		type_buff = type_composite_to_str(NULL, func -> rettype, 0);
+
+		strncpy(dst + len, type_buff, n);
+		cur_len = strlen(type_buff);
+		if(cur_len > n)
+		{
+			dst[len+n-1] = '\0';
+			return dst;
+		}
+		len += cur_len;
+		n -= cur_len;
+	
+		free(type_buff);
+
+		strncpy(dst + len, " &__ret_val__", n);
+		cur_len = strlen(" &__ret_val__");
+		if(cur_len > n)
+		{
+			dst[len+n-1] = '\0';
+			return dst;
+		}
+		len += cur_len;
+		n -= cur_len;
+	}
+
+
+	for(i=0, flag=0; i<func -> nparams; i++, flag=1)
+	{
+		if(flag)
+		{
+			strncpy(dst + len, ", ", n);
+			cur_len = strlen(", ");
+			if(cur_len > n)
+			{
+				dst[len+n-1] = '\0';
+				return dst;
+			}
+			n -= cur_len;
+			len += cur_len;
+		}
+		else
+		{
+			strncpy(dst + len, " ", n);
+			cur_len = strlen(" ");
+			if(cur_len > n)
+			{
+				dst[len+n-1] = '\0';
+				return dst;
+			}
+			n -= cur_len;
+			len += cur_len;
+
+		}
+
+		type_buff = type_composite_to_str(NULL, func -> param_types[i], 0);
+
+		strncpy(dst + len, type_buff, n);		
+		cur_len = strlen(type_buff);
+		if(cur_len > n)
+		{
+			dst[len+n-1] = '\0';
+			return dst;
+		}
+		len += cur_len;
+		n -= cur_len;
+
+		free(type_buff);
+
+		strncpy(dst + len, " ", n);
+		cur_len = strlen(" ");
+		if(cur_len > n)
+		{
+			dst[len+n-1] = '\0';
+			return dst;
+		}
+		len += cur_len;
+		n -= cur_len;
+
+		strncpy(dst + len, func -> param_names[i], n);
+		cur_len = strlen(func -> param_names[i]);
+		if(cur_len > n)
+		{
+			dst[len+n-1] = '\0';
+			return dst;
+		}
+		len += cur_len;
+		n -= cur_len;
+
+		flag = 1;
+	}
+
+	return dst;
+}

@@ -134,6 +134,120 @@ void type_composite_to_str_test(void)
 }
 
 
+
+void function_header_test(void)
+{
+	char *dst;
+	char *dst_;
+	CompositeType param_types[4] = {MOD32, UCHAR, SSHORT, SINT};
+	char *param_names[4] = {"param1", "param2", "param3", "param4"};
+
+	CU_ASSERT_TRUE((int)(dst = (char *)malloc(sizeof(char) * 1024)));
+
+	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0};
+
+	dst = function_header(dst, &func, 1024);
+	dst_ = function_header(NULL, &func, 0);
+
+	CU_ASSERT_STRING_EQUAL(dst, ".name name");	
+	CU_ASSERT_STRING_EQUAL(dst_, ".name name");	
+	free(dst_);
+
+	function_header(dst, &func, 8);
+	CU_ASSERT_STRING_EQUAL(dst, ".name n");	
+	function_header(dst, &func, 4);
+	CU_ASSERT_STRING_EQUAL(dst, ".na");	
+
+	function_header(dst, &func, 1);
+	CU_ASSERT_STRING_EQUAL(dst, "");	
+
+	dst_ = function_header(dst, &func, 0);
+	CU_ASSERT_EQUAL(dst_, NULL);
+
+	func.rettype = UINT;
+	dst = function_header(dst, &func, 1024);
+	dst_ = function_header(NULL, &func, 0);
+
+	CU_ASSERT_STRING_EQUAL(dst, ".name name uint &__ret_val__");	
+	CU_ASSERT_STRING_EQUAL(dst_, ".name name uint &__ret_val__");
+	free(dst_);
+
+	function_header(dst, &func, 8);
+	CU_ASSERT_STRING_EQUAL(dst, ".name n");	
+
+	function_header(dst, &func, 15);
+	CU_ASSERT_STRING_EQUAL(dst, ".name name uin");	
+
+	function_header(dst, &func, 18);
+	CU_ASSERT_STRING_EQUAL(dst, ".name name uint &");	
+
+	function_header(dst, &func, 24);
+	CU_ASSERT_STRING_EQUAL(dst, ".name name uint &__ret_");	
+
+	func.name = "__name__";
+	func.param_types = param_types;
+	func.param_names = param_names;
+	func.nparams = 1;
+	func.rettype = COMPOSITE_NO_TYPE;
+
+	dst = function_header(dst, &func, 1024);
+	dst_ = function_header(NULL, &func, 0);
+
+
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 param1");	
+	CU_ASSERT_STRING_EQUAL(dst_, ".name __name__ mod32 param1");
+	free(dst_);
+
+	function_header(dst, &func, 16);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ ");	
+
+	function_header(dst, &func, 20);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod3");	
+
+	function_header(dst, &func, 21);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32");	
+
+	function_header(dst, &func, 22);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 ");	
+
+	function_header(dst, &func, 24);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 pa");	
+
+	function_header(dst, &func, 28);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 param1");	
+
+	func.nparams = 4;
+
+	dst = function_header(dst, &func, 1024);
+	dst_ = function_header(NULL, &func, 0);
+
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 param1, uchar param2, sshort param3, sint param4");	
+	CU_ASSERT_STRING_EQUAL(dst_, ".name __name__ mod32 param1, uchar param2, sshort param3, sint param4");
+	free(dst_);
+
+	function_header(dst, &func, 28);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 param1");	
+
+	function_header(dst, &func, 29);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 param1,");	
+
+	function_header(dst, &func, 30);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 param1, ");	
+
+	function_header(dst, &func, 31);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 param1, u");	
+
+	function_header(dst, &func, 50);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 param1, uchar param2, sshort");
+
+	function_header(dst, &func, 51);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 param1, uchar param2, sshort ");
+
+
+	free(dst);
+}
+
+
 int main(int argc, char **argv)
 {
 	CU_pSuite psuite = NULL;
@@ -178,6 +292,13 @@ int main(int argc, char **argv)
 		CU_cleanup_registry();
 		return CU_get_error();		
 	}
+
+	if((CU_add_test(psuite, "test of function_header()",function_header_test) == NULL))
+	{
+		CU_cleanup_registry();
+		return CU_get_error();		
+	}
+
 
 	CU_basic_set_mode(CU_BRM_VERBOSE);
 	CU_basic_run_tests();

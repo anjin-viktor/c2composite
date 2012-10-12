@@ -121,12 +121,21 @@ typedef struct
 {
 	char *name;
 	CompositeType rettype;
-	CompositeType *params;
+	CompositeType *param_types;
+	char **param_names;
 	size_t nparams;
 } function;
 
 
 /**
+Построение строки - описания функции(.name name params). Если dst == NULL то выделяется необходимая область
+памяти, в которую осуществляется копирование. В этом случае переметр n игнорируется.
+@param dst - указатель на буфер для результата
+@param func - указатель на обрабатываемую функцию
+@param n - размер буфера
+@return указатель на буфер.
 */
+
+char *function_header(char *dst, function *func, size_t n);
 
 #endif

@@ -1,10 +1,37 @@
 %{
 #include <stdio.h>
+#include <string.h>
+
+#include "util.h"
+
 static FILE *fp_out;
+
+#define YYSTYPE_IS_DECLARED
+
+typedef union{
+	int i;
+	char *s;
+} YYSTYPE;
+
+
+YYSTYPE yylval;
+
+/*ANSI C требует длинны идентификатора до 63 символов*/
+static char current_identifier[64];
+static function current_function;
+
 %}
 
+%union
+{
+	int n;
+	char *s;
+}
 
-%token IDENTIFIER CONSTANT STRING_LITERAL SIZEOF
+
+
+%token<s> IDENTIFIER
+%token CONSTANT STRING_LITERAL SIZEOF
 %token PTR_OP INC_OP DEC_OP LEFT_OP RIGHT_OP LE_OP GE_OP EQ_OP NE_OP
 %token AND_OP OR_OP MUL_ASSIGN DIV_ASSIGN MOD_ASSIGN ADD_ASSIGN
 %token SUB_ASSIGN LEFT_ASSIGN RIGHT_ASSIGN AND_ASSIGN
@@ -269,7 +296,10 @@ declarator
 	;
 
 direct_declarator
-	: IDENTIFIER
+	: IDENTIFIER 
+	{
+		strncpy(current_identifier, $1, 64);
+	}
 	| '(' declarator ')'
 	| direct_declarator '[' constant_expression ']'
 	| direct_declarator '[' ']'
@@ -415,10 +445,10 @@ external_declaration
 	;
 
 function_definition
-	: declaration_specifiers declarator declaration_list compound_statement 
+	: declaration_specifiers declarator declaration_list compound_statement
 	| declaration_specifiers declarator compound_statement
 	| declarator declaration_list compound_statement
-	| declarator compound_statement 
+	| declarator compound_statement
 	;
 
 %%
