@@ -1,4 +1,4 @@
-unsigned char function()
+unsigned char function(void)
 {
 
 }

@@ -11,6 +11,7 @@ FILE *fp_out;
 typedef union{
 	int i;
 	char *s;
+	parameter_declaration pd;
 } YYSTYPE;
 
 
@@ -20,6 +21,8 @@ YYSTYPE yylval;
 static char current_identifier[64];
 static function current_function;
 static char declaration_specifiers_buffer[1024];
+
+
 
 %}
 
@@ -45,6 +48,8 @@ static char declaration_specifiers_buffer[1024];
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
 %type<s> declarator direct_declarator declaration_specifiers type_specifier
+%type<pd> parameter_declaration
+
 
 %start translation_unit
 %%
@@ -371,13 +376,86 @@ parameter_type_list
 
 parameter_list
 	: parameter_declaration
+	{
+/*		char *tmp;
+		if((current_function.vars = realloc(current_function.vars, (current_function.nvars + 1) * sizeof(parameter_declaration))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		current_function.vars[current_function.nvars] = $1;
+		current_function.nvars++;
+*/
+		if(strcmp($1.type, ""))
+		{
+			if((current_function.param_types = realloc(current_function.param_types,
+				(current_function.nparams + 1) * sizeof(CompositeType))) == NULL)
+				yyerror("internal error: memory allocation failed");
+
+			current_function.param_types[current_function.nparams] = type_composite_from_str($1.type);
+
+			if((current_function.param_names = realloc(current_function.param_names,
+				(current_function.nparams + 1) * sizeof(char *))) == NULL)
+				yyerror("internal error: memory allocation failed");
+
+			if((current_function.param_names[current_function.nparams] = malloc(sizeof(char) * (strlen($1.name) + 1))) == NULL)
+				yyerror("internal error: memory allocation failed");
+
+			strcpy(current_function.param_names[current_function.nparams], $1.name);
+
+			current_function.nparams++;
+		}
+		free($1.type);
+		free($1.name);
+		free($1.init_str);
+
+	}
 	| parameter_list ',' parameter_declaration
+	{
+/*		if((current_function.vars = realloc(current_function.vars, (current_function.nvars + 1) * sizeof(parameter_declaration))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		current_function.vars[current_function.nvars] = $3;
+		current_function.nvars++;
+*/
+		if((current_function.param_types = realloc(current_function.param_types,
+			(current_function.nparams + 1) * sizeof(CompositeType))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		current_function.param_types[current_function.nparams] = type_composite_from_str($3.type);
+
+		if((current_function.param_names = realloc(current_function.param_names,
+			(current_function.nparams + 1) * sizeof(char *))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if((current_function.param_names[current_function.nparams] = malloc(sizeof(char) * (strlen($3.name) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy(current_function.param_names[current_function.nparams], $3.name);
+
+		free($3.type);
+		free($3.name);
+		free($3.init_str);
+
+		current_function.nparams++;
+	}
 	;
 
 parameter_declaration
 	: declaration_specifiers declarator
+	{
+		fprintf(stderr, "pd: 1\n");
+		char *tmp;
+		tmp = type_c_to_composite(NULL, $1, 0);
+		parameter_declaration_set(&$$, tmp, $2, "");
+		free(tmp);
+	}
 	| declaration_specifiers abstract_declarator
 	| declaration_specifiers
+	{
+		char *tmp;
+		tmp = type_c_to_composite(NULL, $1, 0);
+		parameter_declaration_set(&$$, tmp, "", "");
+		free(tmp);		
+	}
 	;
 
 identifier_list
@@ -489,22 +567,16 @@ external_declaration
 
 function_definition
 	: declaration_specifiers declarator declaration_list compound_statement
-{
-//	fprintf("df: 1\n");
-}
+
 	| declaration_specifiers declarator compound_statement
 	{
 		char *header;
-
-		bzero(&current_function, sizeof(current_function));
-		fprintf(stderr, "ret_type: %s\n\n", $1);
 
 		function_set_name(&current_function, $2);
 
 		if(type_c_from_str($1) != C_NO_TYPE)
 		{
 			char buff[128];
-			fprintf(stderr, "test: %s\n\n", $1);
 
 			type_c_to_composite(buff, $1, 128);
 
@@ -522,6 +594,8 @@ function_definition
 		fprintf(fp_out, ".var\n");
 		fprintf(fp_out, ".begin\n");
 		fprintf(fp_out, ".end\n");
+
+		bzero(&current_function, sizeof(function));
 
 	}
 	| declarator declaration_list compound_statement
@@ -565,6 +639,8 @@ int main(int argc, char **argv)
 	}
 
 	stdin = fp_in;
+
+	bzero(&current_function, sizeof(function));
 
 	yyparse();
 	return 0;

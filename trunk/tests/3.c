@@ -1,4 +1,4 @@
-void function()
+void function(void)
 {
 
 }

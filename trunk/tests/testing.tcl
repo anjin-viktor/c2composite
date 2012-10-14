@@ -1,5 +1,10 @@
 set comp_path "../src/c2composite"
 
+if {[file exists $comp_path] == 0} {
+	puts stderr "$comp_path not exists";
+	exit 1;
+}
+
 set test_cases_path "./"
 set source_files  [glob -directory $test_cases_path -nocomplain -tail *.c]
 

@@ -1,0 +1,4 @@
+.name function ushort &__ret_val__, uint a, schar b, ushort c, schar d, uchar e
+.var
+.begin
+.end

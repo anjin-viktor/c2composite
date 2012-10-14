@@ -428,6 +428,8 @@ char *function_header(char *dst, function *func, size_t n)
 	len += cur_len;
 	n -= cur_len;
 
+	flag = 0;
+
 	if(func -> rettype != COMPOSITE_NO_TYPE)
 	{
 		strncpy(dst + len, " ", n);
@@ -463,10 +465,11 @@ char *function_header(char *dst, function *func, size_t n)
 		}
 		len += cur_len;
 		n -= cur_len;
+		flag = 1;
 	}
 
 
-	for(i=0, flag=0; i<func -> nparams; i++, flag=1)
+	for(i=0; i<func -> nparams; i++, flag=1)
 	{
 		if(flag)
 		{
@@ -551,3 +554,31 @@ int function_set_name(function *func, const char *name)
 }
 
 
+
+int parameter_declaration_set(parameter_declaration *pd, const char *type, const char *name, const char *init_str)
+{
+	if(pd == NULL || type == NULL || name == NULL || init_str == NULL)
+		return -1;
+
+	if((pd -> name = malloc((strlen(name) + 1) * sizeof(char))) == NULL)
+		return -2;
+
+	if((pd -> type = malloc((strlen(type) + 1) * sizeof(char))) == NULL)
+	{
+		free(pd -> name);
+		return -2;
+	}
+
+	if((pd -> init_str = malloc((strlen(init_str) + 1) * sizeof(char))) == NULL)
+	{
+		free(pd -> name);
+		free(pd -> type);
+		return -2;
+	}
+
+	strcpy(pd -> name, name);
+	strcpy(pd -> type, type);
+	strcpy(pd -> init_str, init_str);
+
+	return 0;
+}

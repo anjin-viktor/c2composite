@@ -112,6 +112,16 @@ CompositeType type_composite_from_str(const char *str);
 
 char *type_composite_to_str(char *dst, CompositeType type, size_t n);
 
+/**
+Структура для представления определения переменной
+*/
+
+typedef struct 
+{
+	char *name;
+	char *type;
+	char *init_str;
+} parameter_declaration;
 
 /**
 Структура для представления функций
@@ -124,6 +134,8 @@ typedef struct
 	CompositeType *param_types;
 	char **param_names;
 	size_t nparams;
+	parameter_declaration *vars;
+	size_t nvars;
 } function;
 
 
@@ -146,5 +158,18 @@ char *function_header(char *dst, function *func, size_t n);
 */
 
 int function_set_name(function *func, const char *name);
+
+
+
+/**
+Заполнение структуры parameter_declaration значениями
+@param type - строковое представление типа
+@param name - имя переменной
+@param init_str - строка инициализации
+@retval 0: успешное завершение, -1: некорректные входные значения, -2: отказ в выделении памяти
+*/
+
+int parameter_declaration_set(parameter_declaration *pd, const char *type, const char *name, const char *init_str);
+
 
 #endif

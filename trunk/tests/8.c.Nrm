@@ -1,0 +1,4 @@
+.name function sint &__ret_val__, uint a, sint b, sshort c
+.var
+.begin
+.end

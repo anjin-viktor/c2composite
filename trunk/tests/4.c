@@ -1,4 +1,4 @@
-signed long function()
+signed long function(void)
 {
 
 }

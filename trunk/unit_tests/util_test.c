@@ -44,6 +44,9 @@ void type_c_to_composite_test(void)
 	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "signed int", 3), "si");
 	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "char", 2), "s");
 
+	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "void", 25), "");
+
+
 	free(str);
 	str = NULL;
 	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "signed int", 0), "sint");
@@ -153,7 +156,7 @@ void function_header_test(void)
 
 	CU_ASSERT_TRUE((int)(dst = (char *)malloc(sizeof(char) * 1024)));
 
-	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0};
+	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0};
 
 	dst = function_header(dst, &func, 1024);
 	dst_ = function_header(NULL, &func, 0);
@@ -252,7 +255,40 @@ void function_header_test(void)
 	function_header(dst, &func, 51);
 	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ mod32 param1, uchar param2, sshort ");
 
+	func.rettype = SINT;
 
+	dst = function_header(dst, &func, 1024);
+	dst_ = function_header(NULL, &func, 0);
+
+	fprintf(stderr, "%s\n\n", dst);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ sint &__ret_val__, mod32 param1, uchar param2, sshort param3, sint param4");	
+	CU_ASSERT_STRING_EQUAL(dst_, ".name __name__ sint &__ret_val__, mod32 param1, uchar param2, sshort param3, sint param4");
+
+	function_header(dst, &func, 32);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ sint &__ret_val_");
+
+	function_header(dst, &func, 33);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ sint &__ret_val__");
+
+	function_header(dst, &func, 34);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ sint &__ret_val__,");
+
+	function_header(dst, &func, 35);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ sint &__ret_val__, ");
+
+	function_header(dst, &func, 37);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ sint &__ret_val__, mo");
+
+	function_header(dst, &func, 40);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ sint &__ret_val__, mod32");
+
+	function_header(dst, &func, 41);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ sint &__ret_val__, mod32 ");
+
+	function_header(dst, &func, 46);
+	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ sint &__ret_val__, mod32 param");
+
+	free(dst_);
 	free(dst);
 }
 
@@ -267,4 +303,26 @@ void function_set_name_test(void)
 
 	CU_ASSERT_EQUAL(function_set_name(&func, "name"), 0);
 	CU_ASSERT_STRING_EQUAL(func.name, "name");
+
+	free(func.name);
+}
+
+
+
+void parameter_declaration_set_test(void)
+{
+	parameter_declaration pd;
+	CU_ASSERT_EQUAL(parameter_declaration_set(NULL, "", "", ""), -1);
+	CU_ASSERT_EQUAL(parameter_declaration_set(&pd, NULL, "", ""), -1);
+	CU_ASSERT_EQUAL(parameter_declaration_set(NULL, "", NULL, ""), -1);
+	CU_ASSERT_EQUAL(parameter_declaration_set(&pd, "", "", NULL), -1);
+
+	CU_ASSERT_EQUAL(parameter_declaration_set(&pd, "type", "name", "init_str"), 0);
+	CU_ASSERT_STRING_EQUAL(pd.type, "type");
+	CU_ASSERT_STRING_EQUAL(pd.name, "name");
+	CU_ASSERT_STRING_EQUAL(pd.init_str, "init_str");
+
+	free(pd.type);
+	free(pd.name);
+	free(pd.init_str);
 }
