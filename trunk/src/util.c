@@ -582,3 +582,165 @@ int parameter_declaration_set(parameter_declaration *pd, const char *type, const
 
 	return 0;
 }
+
+
+
+
+void function_free(function *func)
+{
+	int i;
+
+	if(func -> name)
+		free(func -> name);
+
+	if(func -> param_types)
+		free(func -> param_types);
+
+	for(i=0; i<func -> nparams; i++)
+		free(func -> param_names[i]);
+
+	if(func -> param_names)
+		free(func -> param_names);
+
+	for(i=0; i<func -> nvars; i++)
+	{
+		if(func -> vars[i].name)
+			free(func -> vars[i].name);
+
+		if(func -> vars[i].type)
+			free(func -> vars[i].type);
+
+		if(func -> vars[i].init_str)
+			free(func -> vars[i].init_str);
+	}
+
+	free(func -> vars);
+
+	bzero(func, sizeof(function));
+}
+
+
+
+
+
+static size_t size_of_function_var(function *func)
+{
+	int i;
+	size_t res = 0;
+	for(i=0; i<func -> nvars; i++)
+	{
+		assert(func -> vars[i].type);
+
+		res += strlen(func -> vars[i].type) + 1;
+
+		if(func -> vars[i].name)
+			res += strlen(func -> vars[i].name) + 1;
+	
+		if(func -> vars[i].init_str)
+			res += strlen(func -> vars[i].init_str) + 1;
+
+		res += 1;
+	}
+	res += 1;
+	return res;
+}
+
+
+
+char *function_var(char *dst, function *func, size_t n)
+{
+	int i;
+	size_t pos = 0, len;
+
+	if(dst == NULL)
+	{
+		n =  size_of_function_var(func);
+		if((dst = malloc(sizeof(char) * n)) == NULL)
+			return NULL;
+	}
+	else if(n == 1)
+	{
+		dst[0] = '\0';
+		return dst;
+	}
+	else if(n == 0)
+		return NULL;
+
+	for(i=0; i<func -> nvars; i++)
+	{
+		strcpy(dst + pos++, "\t");
+
+		if(pos == n)
+		{
+			*(dst + n - 1) = '\0';			
+			return dst;
+		}
+
+		assert(func -> vars[i].type);
+
+		strncpy(dst + pos, func -> vars[i].type, n - pos);
+
+		pos += strlen(func -> vars[i].type);
+
+		if(pos >= n)
+		{
+			*(dst + n - 1) = '\0';
+			return dst;
+		}
+
+		if(func -> vars[i].name)
+		{
+			strcpy(dst + pos++, " ");
+
+			if(pos == n)
+			{
+				*(dst + n - 1) = '\0';
+				return dst;
+			}
+
+			strncpy(dst + pos, func -> vars[i].name, n - pos);
+
+			pos += strlen(func -> vars[i].name);
+
+			if(pos >= n)
+			{
+				*(dst + n - 1) = '\0';
+				return dst;
+			}
+		}
+
+		if(func -> vars[i].init_str)
+		{
+			strcpy(dst + pos++, " ");
+
+			if(pos == n)
+			{
+				*(dst + n - 1) = '\0';
+				return dst;
+			}
+
+			strncpy(dst + pos, func -> vars[i].init_str, n - pos);
+
+			pos += strlen(func -> vars[i].init_str);
+
+			if(pos >= n)
+			{
+				*(dst + n - 1) = '\0';
+				return dst;
+			}
+		}
+
+		strcpy(dst + pos++, "\n");
+
+		if(pos == n)
+		{
+			*(dst + n - 1) = '\0';
+			return dst;
+		}
+	}
+
+	if(func -> nvars == 0)
+		dst[0] = '\0';
+
+	return dst;
+}

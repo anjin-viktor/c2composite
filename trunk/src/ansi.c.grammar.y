@@ -47,7 +47,7 @@ static char declaration_specifiers_buffer[1024];
 
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
-%type<s> declarator direct_declarator declaration_specifiers type_specifier
+%type<s> declarator direct_declarator declaration_specifiers type_specifier init_declarator init_declarator_list
 %type<pd> parameter_declaration
 
 
@@ -194,6 +194,30 @@ constant_expression
 declaration
 	: declaration_specifiers ';'
 	| declaration_specifiers init_declarator_list ';'
+	{
+		char *tmp;
+		if((current_function.vars = realloc(current_function.vars, 
+			(current_function.nvars + 1) * sizeof(parameter_declaration))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		parameter_declaration pd;
+
+		if((pd.name = malloc(sizeof(char) * (strlen($2) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy(pd.name, $2);
+
+		pd.type = type_c_to_composite(NULL, $1, 0);
+
+		if(pd.type == NULL)
+			yyerror("internal error: memory allocation failed");
+
+
+		pd.init_str = NULL;
+
+		current_function.vars[current_function.nvars] = pd;
+		current_function.nvars++;
+	}
 	;
 
 declaration_specifiers
@@ -442,11 +466,11 @@ parameter_list
 parameter_declaration
 	: declaration_specifiers declarator
 	{
-		fprintf(stderr, "pd: 1\n");
 		char *tmp;
 		tmp = type_c_to_composite(NULL, $1, 0);
 		parameter_declaration_set(&$$, tmp, $2, "");
 		free(tmp);
+		free($1);
 	}
 	| declaration_specifiers abstract_declarator
 	| declaration_specifiers
@@ -455,6 +479,7 @@ parameter_declaration
 		tmp = type_c_to_composite(NULL, $1, 0);
 		parameter_declaration_set(&$$, tmp, "", "");
 		free(tmp);		
+		free($1);
 	}
 	;
 
@@ -570,7 +595,7 @@ function_definition
 
 	| declaration_specifiers declarator compound_statement
 	{
-		char *header;
+		char *str;
 
 		function_set_name(&current_function, $2);
 
@@ -588,15 +613,23 @@ function_definition
 		}
 		free($2);
 
-		header = function_header(NULL, &current_function, 0);
+		str = function_header(NULL, &current_function, 0);
 
-		fprintf(fp_out, "%s\n", header);
+		fprintf(fp_out, "%s\n", str);
+		free(str);
+
 		fprintf(fp_out, ".var\n");
+
+
+		str = function_var(NULL, &current_function, 0);
+		fprintf(fp_out, "%s", str);
+		free(str);
+
 		fprintf(fp_out, ".begin\n");
 		fprintf(fp_out, ".end\n");
 
+		function_free(&current_function);
 		bzero(&current_function, sizeof(function));
-
 	}
 	| declarator declaration_list compound_statement
 	| declarator compound_statement

@@ -8,6 +8,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <assert.h>
 
 /**
 Переобразовываем строки с типом языка СИ в строку с типом архитектуры "Композит".
@@ -145,10 +146,24 @@ typedef struct
 @param dst - указатель на буфер для результата
 @param func - указатель на обрабатываемую функцию
 @param n - размер буфера
-@return указатель на буфер.
+@return указатель на буфер
 */
 
 char *function_header(char *dst, function *func, size_t n);
+
+
+/**
+Построение строки, описывающей секцию .var функции. Если dst == NULL то выделяется необходимая область памяти, 
+в которую осуществляется копирование. В этом случае параметр n игнорируется.
+@param dst - указатель на буфер для результат
+@param func - указатель на функцию, для которой осуществляется построение
+@param n - размер целевого буфера
+@return указатель на целевой буфер
+*/
+
+char *function_var(char *dst, function *func, size_t n);
+
+
 
 /**
 Установка имени в структуру function.
@@ -158,6 +173,15 @@ char *function_header(char *dst, function *func, size_t n);
 */
 
 int function_set_name(function *func, const char *name);
+
+
+
+/**
+Освобождение занимаемой структорой памяти
+@param func - указатель на структуру, освобождение полей которой осуществляется
+*/
+
+void function_free(function *func);
 
 
 
