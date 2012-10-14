@@ -47,7 +47,7 @@ char *type_c_to_composite(char *dst, const char *src, size_t n)
 
 		strncpy(dst, "ushort", n);
 	}
-	else if(strcmp(src, "int") == 0 || strcmp(src, "signed int") == 0)
+	else if(strcmp(src, "int") == 0 || strcmp(src, "signed int") == 0 || strcmp(src, "signed long") == 0 || strcmp(src, "long") == 0)
 	{
 		if(dst == NULL)
 		{
@@ -59,7 +59,7 @@ char *type_c_to_composite(char *dst, const char *src, size_t n)
 
 		strncpy(dst, "sint", n);
 	}
-	else if(strcmp(src, "unsigned int") == 0)
+	else if(strcmp(src, "unsigned int") == 0 || strcmp(src, "unsigned long") == 0)
 	{
 		if(dst == NULL)
 		{
@@ -101,9 +101,9 @@ CType type_c_from_str(const char *str)
 		return SIGNED_SHORT;
 	else if(strcmp(str, "unsigned short") == 0)
 		return UNSIGNED_SHORT;
-	else if(strcmp(str, "signed int") == 0 || strcmp(str, "int") == 0)
+	else if(strcmp(str, "signed int") == 0 || strcmp(str, "int") == 0 || strcmp(str, "signed long") == 0 || strcmp(str, "long") == 0)
 		return SIGNED_INT;
-	else if(strcmp(str, "unsigned int") == 0)
+	else if(strcmp(str, "unsigned int") == 0 || strcmp(str, "unsigned long") == 0)
 		return UNSIGNED_INT;
 	else 
 		return C_NO_TYPE;
@@ -533,3 +533,21 @@ char *function_header(char *dst, function *func, size_t n)
 
 	return dst;
 }
+
+
+
+
+int function_set_name(function *func, const char *name)
+{
+	if(name == NULL || func == NULL)
+		return -1;
+
+	if((func -> name = malloc((strlen(name) + 1) * sizeof(char))) == NULL)
+		return -2;
+
+	strcpy(func -> name, name);
+
+	return 0;
+}
+
+

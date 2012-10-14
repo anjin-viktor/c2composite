@@ -14,11 +14,14 @@ exec_unit_tests:
 util.o: util.c util.h
 	gcc -c util.c
 
-c2composite: ansi.c.grammar.tab.h lex.yy.c 
-	cc lex.yy.c ansi.c.grammar.tab.c -o c2composite
+c2composite: ansi.c.grammar.tab.o lex.yy.c util.o
+	cc lex.yy.c ansi.c.grammar.tab.o util.o -o c2composite
 
-ansi.c.grammar.tab.h, ansi.c.grammar.tab.h: ansi.c.grammar.y
+ansi.c.grammar.tab.c ansi.c.grammar.tab.h: ansi.c.grammar.y
 	bison -d ansi.c.grammar.y
+
+ansi.c.grammar.tab.o: ansi.c.grammar.tab.c
+	gcc -c ansi.c.grammar.tab.c
 
 lex.yy.c: ansi.c.grammar.tab.h ansi.c.grammar.tab.h ansi.c.grammar.lex
 	flex ansi.c.grammar.lex

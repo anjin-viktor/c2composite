@@ -21,8 +21,13 @@ void type_c_to_composite_test(void)
 	char *str;
 	CU_ASSERT_TRUE((int)(str = (char *)malloc(sizeof(char) * 32)));
 	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "signed int", 32), "sint");
+	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "long", 32), "sint");
+	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "signed long", 32), "sint");
 	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "int", 32), "sint");
 	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "unsigned int", 32), "uint");
+	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "unsigned long", 32), "uint");
+
+
 
 	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "signed char", 32), "schar");
 	CU_ASSERT_STRING_EQUAL(type_c_to_composite(str, "char", 32), "schar");
@@ -56,7 +61,11 @@ void type_c_from_str_test(void)
 	CU_ASSERT_EQUAL(type_c_from_str("short"), SIGNED_SHORT);
 	CU_ASSERT_EQUAL(type_c_from_str("unsigned short"), UNSIGNED_SHORT);
 	CU_ASSERT_EQUAL(type_c_from_str("signed int"), SIGNED_INT);
+	CU_ASSERT_EQUAL(type_c_from_str("int"), SIGNED_INT);
+	CU_ASSERT_EQUAL(type_c_from_str("long"), SIGNED_INT);
+	CU_ASSERT_EQUAL(type_c_from_str("signed long"), SIGNED_INT);
 	CU_ASSERT_EQUAL(type_c_from_str("unsigned int"), UNSIGNED_INT);
+	CU_ASSERT_EQUAL(type_c_from_str("unsigned long"), UNSIGNED_INT);
 	CU_ASSERT_EQUAL(type_c_from_str("incorrect_type"), C_NO_TYPE);
 }
 
@@ -248,60 +257,14 @@ void function_header_test(void)
 }
 
 
-int main(int argc, char **argv)
+
+void function_set_name_test(void)
 {
-	CU_pSuite psuite = NULL;
+	function func;
 
-	if (CU_initialize_registry() != CUE_SUCCESS)
-		return CU_get_error();
+	CU_ASSERT_EQUAL(function_set_name(NULL, ""), -1);
+	CU_ASSERT_EQUAL(function_set_name(&func, NULL), -1);
 
-	psuite = CU_add_suite("Suite_UTIL", init_suite_UTIL, clean_suite_UTIL);
-	if (psuite == NULL) 
-	{
-		CU_cleanup_registry();
-		return CU_get_error();
-	}
-
-	if((CU_add_test(psuite, "test of type_c_to_composite()", type_c_to_composite_test) == NULL))
-	{
-		CU_cleanup_registry();
-		return CU_get_error();		
-	}
-
-	if((CU_add_test(psuite, "test of type_c_from_str()", type_c_from_str_test) == NULL))
-	{
-		CU_cleanup_registry();
-		return CU_get_error();		
-	}
-
-	if((CU_add_test(psuite, "test of type_c_to_str()", type_c_to_str_test) == NULL))
-	{
-		CU_cleanup_registry();
-		return CU_get_error();		
-	}
-
-
-	if((CU_add_test(psuite, "test of type_composite_from_str()", type_composite_from_str_test) == NULL))
-	{
-		CU_cleanup_registry();
-		return CU_get_error();		
-	}
-
-	if((CU_add_test(psuite, "test of type_composite_to_str()", type_composite_to_str_test) == NULL))
-	{
-		CU_cleanup_registry();
-		return CU_get_error();		
-	}
-
-	if((CU_add_test(psuite, "test of function_header()",function_header_test) == NULL))
-	{
-		CU_cleanup_registry();
-		return CU_get_error();		
-	}
-
-
-	CU_basic_set_mode(CU_BRM_VERBOSE);
-	CU_basic_run_tests();
-	CU_cleanup_registry();
-	return CU_get_error();
+	CU_ASSERT_EQUAL(function_set_name(&func, "name"), 0);
+	CU_ASSERT_STRING_EQUAL(func.name, "name");
 }

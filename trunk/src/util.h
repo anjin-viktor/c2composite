@@ -138,4 +138,13 @@ typedef struct
 
 char *function_header(char *dst, function *func, size_t n);
 
+/**
+Установка имени в структуру function.
+@param name - устанавливаемое имя
+@param func - структура для установки имени
+@retval 0: успешное завершение, -1: некорректные входные значения, -2: отказ в выделении памяти
+*/
+
+int function_set_name(function *func, const char *name);
+
 #endif

@@ -4,7 +4,7 @@
 
 #include "util.h"
 
-static FILE *fp_out;
+FILE *fp_out;
 
 #define YYSTYPE_IS_DECLARED
 
@@ -19,6 +19,7 @@ YYSTYPE yylval;
 /*ANSI C требует длинны идентификатора до 63 символов*/
 static char current_identifier[64];
 static function current_function;
+static char declaration_specifiers_buffer[1024];
 
 %}
 
@@ -43,6 +44,7 @@ static function current_function;
 
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
+%type<s> declarator direct_declarator declaration_specifiers type_specifier
 
 %start translation_unit
 %%
@@ -193,7 +195,30 @@ declaration_specifiers
 	: storage_class_specifier
 	| storage_class_specifier declaration_specifiers
 	| type_specifier
+	{
+		size_t length = strlen($1);
+		length += 1;
+
+		if(($$ = malloc(length)) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$, $1);
+	}
 	| type_specifier declaration_specifiers
+	{
+		size_t length = strlen($1);
+		length += 2;
+		length += strlen($2);
+
+		if(($$ = malloc(length)) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$, $1);
+		strcat($$, " ");
+		strcat($$, $2);
+
+		free($2);
+	}
 	| type_qualifier
 	| type_qualifier declaration_specifiers
 	;
@@ -218,14 +243,35 @@ storage_class_specifier
 
 type_specifier
 	: VOID
+	{
+		$$ = "void";
+	}
 	| CHAR
+	{
+		$$ = "char";
+	}
 	| SHORT
+	{
+		$$ = "short";
+	}
 	| INT
+	{
+		$$ = "int";
+	}
 	| LONG
-	| FLOAT
-	| DOUBLE
+	{
+		$$ = "long";
+	}
+//	| FLOAT
+//	| DOUBLE
 	| SIGNED
+	{
+		$$ = "signed";
+	}
 	| UNSIGNED
+	{
+		$$ = "unsigned";
+	}
 	| struct_or_union_specifier
 	| enum_specifier
 	| TYPE_NAME
@@ -297,9 +343,6 @@ declarator
 
 direct_declarator
 	: IDENTIFIER 
-	{
-		strncpy(current_identifier, $1, 64);
-	}
 	| '(' declarator ')'
 	| direct_declarator '[' constant_expression ']'
 	| direct_declarator '[' ']'
@@ -446,7 +489,41 @@ external_declaration
 
 function_definition
 	: declaration_specifiers declarator declaration_list compound_statement
+{
+//	fprintf("df: 1\n");
+}
 	| declaration_specifiers declarator compound_statement
+	{
+		char *header;
+
+		bzero(&current_function, sizeof(current_function));
+		fprintf(stderr, "ret_type: %s\n\n", $1);
+
+		function_set_name(&current_function, $2);
+
+		if(type_c_from_str($1) != C_NO_TYPE)
+		{
+			char buff[128];
+			fprintf(stderr, "test: %s\n\n", $1);
+
+			type_c_to_composite(buff, $1, 128);
+
+			current_function.rettype = type_composite_from_str(buff);
+		}
+		else
+		{
+			current_function.rettype = COMPOSITE_NO_TYPE;
+		}
+		free($2);
+
+		header = function_header(NULL, &current_function, 0);
+
+		fprintf(fp_out, "%s\n", header);
+		fprintf(fp_out, ".var\n");
+		fprintf(fp_out, ".begin\n");
+		fprintf(fp_out, ".end\n");
+
+	}
 	| declarator declaration_list compound_statement
 	| declarator compound_statement
 	;
