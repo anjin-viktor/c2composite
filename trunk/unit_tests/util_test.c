@@ -523,3 +523,23 @@ void function_code_test(void)
 
 	free(dst);
 }
+
+
+
+
+
+void function_get_var_test(void)
+{
+ 	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0, NULL, 0};
+	parameter_declaration pdl[] = { {"name1", "type1", NULL}, {"name2", "type2", "init2"} };
+
+	func.vars = pdl;
+	func.nvars = 2;
+
+	CU_ASSERT_EQUAL(function_get_var(&func, "name1"), &pdl[0]);
+	CU_ASSERT_EQUAL(function_get_var(&func, "name2"), &pdl[1]);
+	CU_ASSERT_EQUAL(function_get_var(&func, "name3"), NULL);
+	CU_ASSERT_EQUAL(function_get_var(&func, NULL), NULL);
+	CU_ASSERT_EQUAL(function_get_var(NULL, "name2"), NULL);
+}
+

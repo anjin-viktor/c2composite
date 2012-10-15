@@ -193,6 +193,16 @@ int function_set_name(function *func, const char *name);
 
 
 
+
+/**
+Получение указателя на переменную с требуемым именем. Если такой переменной нет возвращается NULL.
+@param func - функций, для которой осуществляется поиск
+@param name - имя искомой переменной
+@return указатель на переменную, NULL, если она не найдена
+*/
+parameter_declaration *function_get_var(const function *func, const char *name);
+
+
 /**
 Освобождение занимаемой структорой памяти
 @param func - указатель на структуру, освобождение полей которой осуществляется

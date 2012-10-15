@@ -1,0 +1,18 @@
+.name function sint a
+.var
+	uchar b
+	uchar b_0
+	sint a_1
+	sint a_2
+	uchar b_3
+.begin
+mov b_0, b
+add b, 1
+mov a_1, a
+add a, 1
+mov a_2, a
+sub a, 1
+mov b_3, b
+sub b, 1
+.end
+

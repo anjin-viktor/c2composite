@@ -871,3 +871,21 @@ char *function_code(char *dst, const function *func, size_t n)
 
 	return dst;
 }
+
+
+
+
+parameter_declaration *function_get_var(const function *func, const char *name)
+{
+	parameter_declaration *res = NULL;
+	int i=0;
+
+	if(func == NULL || name == NULL)
+		return NULL;
+
+	for(;i<func -> nvars && res == NULL; i++)
+		if(strcmp(func -> vars[i].name, name) == 0)
+			res = &(func -> vars[i]);
+
+	return res;
+}

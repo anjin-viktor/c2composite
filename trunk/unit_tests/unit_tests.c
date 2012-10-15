@@ -16,6 +16,7 @@ void function_var_test(void);
 void init_declarator_set_test(void);
 void function_add_command_test(void);
 void function_code_test(void);
+void function_get_var_test(void);
 
 
 int main(int argc, char **argv)
@@ -105,6 +106,11 @@ int main(int argc, char **argv)
 		return CU_get_error();		
 	}
 
+	if((CU_add_test(psuite, "test of  function_get_var()",  function_get_var_test) == NULL))
+	{
+		CU_cleanup_registry();
+		return CU_get_error();		
+	}
 
 	CU_basic_set_mode(CU_BRM_VERBOSE);
 	CU_basic_run_tests();
