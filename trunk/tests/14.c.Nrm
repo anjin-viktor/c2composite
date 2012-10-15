@@ -1,0 +1,10 @@
+.name function sint a
+.var
+	uchar b
+.begin
+add a, 1
+add b, 1
+sub b, 1
+sub a, 1
+.end
+

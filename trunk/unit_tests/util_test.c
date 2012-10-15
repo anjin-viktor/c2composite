@@ -153,7 +153,7 @@ void function_header_test(void)
 	char *dst_;
 	CompositeType param_types[4] = {MOD32, UCHAR, SSHORT, SINT};
 	char *param_names[4] = {"param1", "param2", "param3", "param4"};
-	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0};
+	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0, NULL, 0};
 
 	CU_ASSERT_TRUE((int)(dst = (char *)malloc(sizeof(char) * 1024)));
 
@@ -332,7 +332,7 @@ void function_var_test(void)
 	char *dst;
 	char *dst_;
 	parameter_declaration pdl[] = { {"name1", "type1", NULL}, {"name2", "type2", "init2"} };
-	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0};
+	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0, NULL, 0};
 
 	CU_ASSERT_TRUE((int)(dst = (char *)malloc(sizeof(char) * 1024)));
 
@@ -427,4 +427,99 @@ void init_declarator_set_test(void)
 	CU_ASSERT_EQUAL(id.init_val, NULL);
 
 	free(id.name);
+}
+
+
+
+void function_add_command_test(void)
+{
+ 	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0, NULL, 0};
+
+	function_set_name(&func, "name");
+
+	CU_ASSERT_EQUAL(func.ncommands, 0);
+
+	CU_ASSERT_EQUAL(function_add_command(&func, "add s, 1"), 0);
+	CU_ASSERT_EQUAL(func.ncommands, 1);
+	CU_ASSERT_STRING_EQUAL(func.code[0], "add s, 1");
+
+	CU_ASSERT_EQUAL(function_add_command(&func, "label: mul s1, 2"), 0);
+	CU_ASSERT_EQUAL(function_add_command(&func, "label1:"), 0);
+	CU_ASSERT_EQUAL(function_add_command(&func,  NULL), -1);
+	CU_ASSERT_EQUAL(function_add_command(NULL,  ""), -1);
+
+	CU_ASSERT_STRING_EQUAL(func.code[0], "add s, 1");
+	CU_ASSERT_STRING_EQUAL(func.code[1], "label: mul s1, 2");
+	CU_ASSERT_STRING_EQUAL(func.code[2], "label1:");
+	CU_ASSERT_EQUAL(func.ncommands, 3);
+
+	function_free(&func);
+}
+
+
+
+
+void function_code_test(void)
+{
+	char *dst;
+	char *dst_;
+
+	char *strs[] = {"l1: mov a, b", "l2: ", "ret", "call function"};
+
+	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0, strs, 0};
+
+	CU_ASSERT_TRUE((int)(dst = (char *)malloc(sizeof(char) * 1024)));
+
+	dst = function_code(dst, &func, 1024);
+	dst_ = function_code(NULL, &func, 0);
+
+	CU_ASSERT_STRING_EQUAL(dst, "");
+	CU_ASSERT_STRING_EQUAL(dst_, "");
+	free(dst_);
+
+	func.ncommands = 1;
+
+	dst = function_code(dst, &func, 1);
+	CU_ASSERT_STRING_EQUAL(dst, "");
+
+	dst_ = function_code(dst, &func, 0);
+	CU_ASSERT_EQUAL(dst_, NULL);
+
+
+	dst = function_code(dst, &func, 1024);
+	dst_ = function_code(NULL, &func, 0);
+
+	CU_ASSERT_STRING_EQUAL(dst, "l1: mov a, b\n");
+	CU_ASSERT_STRING_EQUAL(dst_, "l1: mov a, b\n");
+	free(dst_);
+
+	dst = function_code(dst, &func, 2);
+	CU_ASSERT_STRING_EQUAL(dst, "l");
+
+	dst = function_code(dst, &func, 13);
+	CU_ASSERT_STRING_EQUAL(dst, "l1: mov a, b");
+
+	dst = function_code(dst, &func, 14);
+	CU_ASSERT_STRING_EQUAL(dst, "l1: mov a, b\n");
+
+
+	func.ncommands = 4;
+
+	dst = function_code(dst, &func, 1024);
+	dst_ = function_code(NULL, &func, 1024);
+
+	CU_ASSERT_STRING_EQUAL(dst, "l1: mov a, b\nl2: \nret\ncall function\n");
+	CU_ASSERT_STRING_EQUAL(dst_, "l1: mov a, b\nl2: \nret\ncall function\n");
+	free(dst_);
+
+	dst = function_code(dst, &func, 14);
+	CU_ASSERT_STRING_EQUAL(dst, "l1: mov a, b\n");
+
+	dst = function_code(dst, &func, 15);
+	CU_ASSERT_STRING_EQUAL(dst, "l1: mov a, b\nl");
+
+	dst = function_code(dst, &func, 23);
+	CU_ASSERT_STRING_EQUAL(dst, "l1: mov a, b\nl2: \nret\n");
+
+	free(dst);
 }

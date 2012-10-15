@@ -10,6 +10,8 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include <stdio.h>
+
 /**
 Переобразовываем строки с типом языка СИ в строку с типом архитектуры "Композит".
 Если dst == NULL то выделяется буфер подходящего размера и возвращается указатель на него. В этом случае 
@@ -137,6 +139,8 @@ typedef struct
 	size_t nparams;
 	parameter_declaration *vars;
 	size_t nvars;
+	char **code;
+	size_t ncommands;
 } function;
 
 
@@ -149,7 +153,7 @@ typedef struct
 @return указатель на буфер
 */
 
-char *function_header(char *dst, function *func, size_t n);
+char *function_header(char *dst, const function *func, size_t n);
 
 
 /**
@@ -161,7 +165,20 @@ char *function_header(char *dst, function *func, size_t n);
 @return указатель на целевой буфер
 */
 
-char *function_var(char *dst, function *func, size_t n);
+char *function_var(char *dst, const function *func, size_t n);
+
+
+
+/**
+Построение строки, описывающей секцию .code функции. Если dst == NULL то выделяется необходимая область памяти, 
+в которую осуществляется копирование. В этом случае параметр n игнорируется.
+@param dst - указатель на буфер для результат
+@param func - указатель на функцию, для которой осуществляется построение
+@param n - размер целевого буфера
+@return указатель на целевой буфер
+*/
+
+char *function_code(char *dst, const function *func, size_t n);
 
 
 
@@ -184,6 +201,16 @@ int function_set_name(function *func, const char *name);
 void function_free(function *func);
 
 
+/**
+Добавление строки с описанием команды к структуре function
+@param func - указатель на функцию, в которую осуществляется добавление
+@param str - добавляемая строка
+@retval 0: успешное завершение, -1: некорректные входные значения, -2: отказ в выделении памяти
+*/
+
+int function_add_command(function *func, const char *str);
+
+
 
 /**
 Заполнение структуры parameter_declaration значениями
@@ -199,7 +226,7 @@ int parameter_declaration_set(parameter_declaration *pd, const char *type, const
 
 
 /**
-Структура для преставления элемента списка инициализации
+Структура для преставления узла элемента списка инициализации
 */
 typedef struct 
 {
@@ -220,9 +247,8 @@ int init_declarator_set(init_declarator *id, const char *name, const char *init_
 
 
 /**
-Структура для преставления списка инициализации
+Структура для преставления элемента списка инициализации
 */
-
 
 struct init_declarator_list_element
 {
@@ -230,11 +256,25 @@ struct init_declarator_list_element
 	struct init_declarator_list_element *next;
 };
 
+
+/**
+Структура для преставления списка инициализации
+*/
+
 typedef struct
 {
 	struct init_declarator_list_element *head;
 } init_declarator_list;
 
+
+/**
+Структура для представления результата выражения
+*/
+
+typedef struct 
+{
+	char *result_name;
+} expression;
 
 
 #endif

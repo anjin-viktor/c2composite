@@ -343,7 +343,7 @@ char *type_composite_to_str(char *dst, CompositeType type, size_t n)
 }
 
 
-static size_t size_of_function_header(function *func)
+static size_t size_of_function_header(const function *func)
 {
 	char *type_buff;
 	int i;
@@ -377,7 +377,7 @@ static size_t size_of_function_header(function *func)
 }
 
 
-char *function_header(char *dst, function *func, size_t n)
+char *function_header(char *dst, const function *func, size_t n)
 {
 	size_t len;
 	size_t cur_len;
@@ -616,6 +616,14 @@ void function_free(function *func)
 
 	free(func -> vars);
 
+	if(func -> code)
+	{
+		for(i=0; i<func -> ncommands; i++)
+			free(func -> code[i]);
+
+		free(func -> code);
+	}
+
 	bzero(func, sizeof(function));
 }
 
@@ -623,7 +631,7 @@ void function_free(function *func)
 
 
 
-static size_t size_of_function_var(function *func)
+static size_t size_of_function_var(const function *func)
 {
 	int i;
 	size_t res = 0;
@@ -647,7 +655,7 @@ static size_t size_of_function_var(function *func)
 
 
 
-char *function_var(char *dst, function *func, size_t n)
+char *function_var(char *dst, const function *func, size_t n)
 {
 	int i;
 	size_t pos = 0, len;
@@ -775,4 +783,91 @@ int init_declarator_set(init_declarator *id, const char *name, const char *init_
 	strcpy(id -> name, name);
 
 	return 0;
+}
+
+
+
+
+int function_add_command(function *func, const char *str)
+{
+	if(func == NULL || str == NULL)
+		return -1;
+
+	if((func -> code = (char **)realloc(func -> code, sizeof(char *) * (func -> ncommands+1))) == NULL)
+		return -2;
+
+	if((func -> code[func -> ncommands] = (char *)malloc(sizeof(char) * (strlen(str) + 1))) == NULL)
+		return -2;
+
+	strcpy(func -> code[func -> ncommands], str);
+	func -> ncommands++;
+
+	return 0;
+}
+
+
+
+
+static size_t size_of_function_code(const function *func)
+{
+	size_t res = 0;
+	int i;
+
+	for(i=0; i<func -> ncommands; i++)
+	{
+		res += strlen(func -> code[i]);
+		res += 1;
+	}
+
+	res += 1;
+	return res;
+}
+
+
+
+char *function_code(char *dst, const function *func, size_t n)
+{
+	int i;
+	size_t pos = 0;
+
+	if(dst == NULL)
+	{
+		n =  size_of_function_code(func);
+		if((dst = malloc(sizeof(char) * n)) == NULL)
+			return NULL;
+	}
+	else if(n == 1)
+	{
+		dst[0] = '\0';
+		return dst;
+	}
+	else if(n == 0)
+		return NULL;
+
+
+	for(i=0; i<func -> ncommands; i++)
+	{
+		strncpy(dst + pos, func -> code[i], n - pos);
+
+		pos += strlen(func -> code[i]);
+
+		if(pos >= n)
+		{
+			*(dst + n - 1) = '\0';
+			return dst;
+		}
+
+		strcpy(dst + pos++, "\n");
+
+		if(pos == n)
+		{
+			*(dst + n - 1) = '\0';
+			return dst;
+		}
+	}
+
+	if(func -> ncommands == 0)
+		dst[0] = '\0';
+
+	return dst;
 }

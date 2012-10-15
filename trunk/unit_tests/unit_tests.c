@@ -14,6 +14,8 @@ void function_set_name_test(void);
 void parameter_declaration_set_test(void);
 void function_var_test(void);
 void init_declarator_set_test(void);
+void function_add_command_test(void);
+void function_code_test(void);
 
 
 int main(int argc, char **argv)
@@ -86,6 +88,18 @@ int main(int argc, char **argv)
 	}
 
 	if((CU_add_test(psuite, "test of  init_declarator_set()",  init_declarator_set_test) == NULL))
+	{
+		CU_cleanup_registry();
+		return CU_get_error();		
+	}
+
+	if((CU_add_test(psuite, "test of  function_add_command()",  function_add_command_test) == NULL))
+	{
+		CU_cleanup_registry();
+		return CU_get_error();		
+	}
+
+	if((CU_add_test(psuite, "test of  function_code()",  function_code_test) == NULL))
 	{
 		CU_cleanup_registry();
 		return CU_get_error();		

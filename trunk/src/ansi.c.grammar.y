@@ -14,6 +14,7 @@ typedef union{
 	parameter_declaration pd;
 	init_declarator id;
 	init_declarator_list lid;
+	expression expr;
 } YYSTYPE;
 
 
@@ -58,12 +59,18 @@ static char declaration_specifiers_buffer[1024];
 %type<id> init_declarator
 %type<lid> init_declarator_list
 
+%type<expr> primary_expression postfix_expression unary_expression assignment_expression cast_expression multiplicative_expression
+%type<expr> additive_expression shift_expression relational_expression equality_expression conditional_expression
+%type<expr> and_expression  exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression 
 
-%start translation_unit
+%start translation_unit 
 %%
 
 primary_expression
 	: IDENTIFIER 
+	{
+		$$.result_name = $1;
+	}
 	| CONSTANT
 	| STRING_LITERAL
 	| '(' expression ')'
@@ -71,6 +78,9 @@ primary_expression
 
 postfix_expression
 	: primary_expression
+	{
+		$$.result_name = $1.result_name;
+	}
 	| postfix_expression '[' expression ']'
 	| postfix_expression '(' ')'
 	| postfix_expression '(' argument_expression_list ')'
@@ -87,8 +97,35 @@ argument_expression_list
 
 unary_expression
 	: postfix_expression
+	{
+		$$.result_name = $1.result_name;
+	}
 	| INC_OP unary_expression
+	{
+		char *tmp;
+
+		if((tmp = (char *)malloc(sizeof(char) * (strlen($2.result_name) + 16))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		sprintf(tmp, "add %s, 1", $2.result_name);
+		function_add_command(&current_function, tmp);
+		free(tmp);
+
+		$$.result_name = $2.result_name;
+	}
 	| DEC_OP unary_expression
+	{
+		char *tmp;
+
+		if((tmp = (char *)malloc(sizeof(char) * (strlen($2.result_name) + 16))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		sprintf(tmp, "sub %s, 1", $2.result_name);
+		function_add_command(&current_function, tmp);
+		free(tmp);
+
+		$$.result_name = $2.result_name;		
+	}
 	| unary_operator cast_expression
 	| SIZEOF unary_expression
 	| SIZEOF '(' type_name ')'
@@ -141,6 +178,7 @@ equality_expression
 	| equality_expression NE_OP relational_expression
 	;
 
+
 and_expression
 	: equality_expression
 	| and_expression '&' equality_expression
@@ -192,6 +230,9 @@ assignment_operator
 
 expression
 	: assignment_expression
+	{
+		free($1.result_name);
+	}
 	| expression ',' assignment_expression
 	;
 
@@ -698,6 +739,9 @@ function_definition
 		free(str);
 
 		fprintf(fp_out, ".begin\n");
+		str = function_code(NULL, &current_function, 0);
+		fprintf(fp_out, "%s", str);
+		free(str);
 		fprintf(fp_out, ".end\n\n");
 
 		function_free(&current_function);
