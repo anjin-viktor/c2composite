@@ -184,7 +184,50 @@ unary_expression
 	}
 	| unary_operator cast_expression
 	{
+		const char *const new_name = function_copy_var(&current_function, $2.result_name);
+		char *tmp;
 
+		if(new_name == NULL)
+		{
+			//обдумать поведение в данном случае
+			yyerror("error: variable not exists");
+		}
+	
+		if((tmp = (char *)malloc(sizeof(char) * (strlen($2.result_name) + strlen(new_name) + 16))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		switch($1)
+		{
+			case OP_MIN:
+			{
+				sprintf(tmp, "mov %s, 0", new_name);
+				function_add_command(&current_function, tmp);
+
+				sprintf(tmp, "sub %s, %s", new_name, $2.result_name);
+				function_add_command(&current_function, tmp);
+			
+				break;
+			}
+
+			case OP_PLUS:
+			{
+				sprintf(tmp, "mov %s, %s", new_name, $2.result_name);
+				function_add_command(&current_function, tmp);
+			
+				break;				
+			}
+
+			default:
+				break;
+		};
+
+		free(tmp);
+
+		if(($$.result_name = (char *) realloc($2.result_name, sizeof(char) * (strlen(new_name) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+
+		strcpy($$.result_name, new_name);
 	}
 	| SIZEOF unary_expression
 	| SIZEOF '(' type_name ')'
@@ -196,6 +239,9 @@ unary_operator
 	}
 	| '*'
 	| '+'
+	{
+		$$ = OP_PLUS;
+	}
 	| '-'
 	{
 		$$ = OP_MIN;

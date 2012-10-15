@@ -974,5 +974,7 @@ const char * const function_copy_var(function *func, const char *name)
 	func -> vars[func -> nvars] = pd;
 	(func -> nvars)++;
 
+	free(old_name);
+
 	return func -> vars[func -> nvars-1].name;
 }

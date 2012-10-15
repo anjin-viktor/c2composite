@@ -1,0 +1,10 @@
+.name function sint d
+.var
+	ushort b
+	ushort b_0
+	sint d_1
+.begin
+mov b_0, b
+mov d_1, d
+.end
+
