@@ -259,7 +259,6 @@ void function_header_test(void)
 	dst = function_header(dst, &func, 1024);
 	dst_ = function_header(NULL, &func, 0);
 
-	fprintf(stderr, "%s\n\n", dst);
 	CU_ASSERT_STRING_EQUAL(dst, ".name __name__ sint &__ret_val__, mod32 param1, uchar param2, sshort param3, sint param4");	
 	CU_ASSERT_STRING_EQUAL(dst_, ".name __name__ sint &__ret_val__, mod32 param1, uchar param2, sshort param3, sint param4");
 
@@ -404,4 +403,28 @@ void function_var_test(void)
 	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 name1\n\ttype2 name2 init2\n");
 
 	free(dst);
+}
+
+
+
+void init_declarator_set_test(void)
+{
+	init_declarator id;
+	CU_ASSERT_EQUAL(init_declarator_set(&id, "name", "init_val"), 0);
+
+	CU_ASSERT_STRING_EQUAL(id.name, "name");
+	CU_ASSERT_STRING_EQUAL(id.init_val, "init_val");
+
+	free(id.name);
+	free(id.init_val);
+
+	CU_ASSERT_EQUAL(init_declarator_set(&id, NULL, ""), -1);
+	CU_ASSERT_EQUAL(init_declarator_set(NULL, "", ""), -1);
+
+	CU_ASSERT_EQUAL(init_declarator_set(&id, "name", NULL), 0);
+
+	CU_ASSERT_STRING_EQUAL(id.name, "name");
+	CU_ASSERT_EQUAL(id.init_val, NULL);
+
+	free(id.name);
 }

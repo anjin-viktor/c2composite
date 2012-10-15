@@ -744,3 +744,35 @@ char *function_var(char *dst, function *func, size_t n)
 
 	return dst;
 }
+
+
+int init_declarator_set(init_declarator *id, const char *name, const char *init_val)
+{
+	if(id == NULL || name == NULL)
+		return -1;
+
+	if((id -> name = (char *) malloc(sizeof(char) * (strlen(name) + 1))) == NULL)
+	{
+		id -> name = NULL;
+		return -2;
+	}
+
+	if(init_val != NULL)
+	{
+		if((id -> init_val = (char *) malloc(sizeof(char) * (strlen(name) + 1))) == NULL)
+		{
+			free(id -> name);
+			id -> name = NULL;
+			id -> init_val = NULL;
+			return -2;
+		}
+
+		strcpy(id -> init_val, init_val);
+	}
+	else
+		id -> init_val = NULL;
+
+	strcpy(id -> name, name);
+
+	return 0;
+}

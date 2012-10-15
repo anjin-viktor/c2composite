@@ -187,6 +187,7 @@ void function_free(function *func);
 
 /**
 Заполнение структуры parameter_declaration значениями
+@param pd - указатель на заполяемую структуру
 @param type - строковое представление типа
 @param name - имя переменной
 @param init_str - строка инициализации
@@ -194,6 +195,46 @@ void function_free(function *func);
 */
 
 int parameter_declaration_set(parameter_declaration *pd, const char *type, const char *name, const char *init_str);
+
+
+
+/**
+Структура для преставления элемента списка инициализации
+*/
+typedef struct 
+{
+	char *name;
+	char *init_val;
+} init_declarator;
+
+
+/**
+Заполнение структуры inid_declarator значениями
+@param id - указатель на запалняемую структуру
+@param name - строка с именем
+@param init_val - строка со значением инициализации. Может принимать значение NULL
+@retval 0: успешное завершение, -1: некорректные входные значения, -2: отказ в выделении памяти
+*/
+
+int init_declarator_set(init_declarator *id, const char *name, const char *init_val);
+
+
+/**
+Структура для преставления списка инициализации
+*/
+
+
+struct init_declarator_list_element
+{
+	init_declarator *node;
+	struct init_declarator_list_element *next;
+};
+
+typedef struct
+{
+	struct init_declarator_list_element *head;
+} init_declarator_list;
+
 
 
 #endif

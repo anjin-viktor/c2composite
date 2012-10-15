@@ -12,10 +12,14 @@ typedef union{
 	int i;
 	char *s;
 	parameter_declaration pd;
+	init_declarator id;
+	init_declarator_list lid;
 } YYSTYPE;
 
 
+
 YYSTYPE yylval;
+
 
 /*ANSI C требует длинны идентификатора до 63 символов*/
 static char current_identifier[64];
@@ -25,6 +29,8 @@ static char declaration_specifiers_buffer[1024];
 
 
 %}
+
+
 
 %union
 {
@@ -47,8 +53,10 @@ static char declaration_specifiers_buffer[1024];
 
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
-%type<s> declarator direct_declarator declaration_specifiers type_specifier init_declarator init_declarator_list
+%type<s> declarator direct_declarator declaration_specifiers type_specifier 
 %type<pd> parameter_declaration
+%type<id> init_declarator
+%type<lid> init_declarator_list
 
 
 %start translation_unit
@@ -195,30 +203,49 @@ declaration
 	: declaration_specifiers ';'
 	| declaration_specifiers init_declarator_list ';'
 	{
-		char *tmp;
-		if((current_function.vars = realloc(current_function.vars, 
-			(current_function.nvars + 1) * sizeof(parameter_declaration))) == NULL)
-			yyerror("internal error: memory allocation failed");
+		struct init_declarator_list_element *p = $2.head;
+		for(;p != NULL; p = p -> next)
+		{
+			char *tmp;
+			if((current_function.vars = realloc(current_function.vars, 
+				(current_function.nvars + 1) * sizeof(parameter_declaration))) == NULL)
+				yyerror("internal error: memory allocation failed");
 
-		parameter_declaration pd;
+			parameter_declaration pd;
 
-		if((pd.name = malloc(sizeof(char) * (strlen($2) + 1))) == NULL)
-			yyerror("internal error: memory allocation failed");
+			if((pd.name = malloc(sizeof(char) * (strlen(p -> node -> name) + 1))) == NULL)
+				yyerror("internal error: memory allocation failed");
 
-		strcpy(pd.name, $2);
+			strcpy(pd.name, p -> node -> name);
 
-		pd.type = type_c_to_composite(NULL, $1, 0);
+			pd.type = type_c_to_composite(NULL, $1, 0);
 
-		if(pd.type == NULL)
-			yyerror("internal error: memory allocation failed");
+			if(pd.type == NULL)
+				yyerror("internal error: memory allocation failed");
 
 
-		pd.init_str = NULL;
+			pd.init_str = NULL;
 
-		current_function.vars[current_function.nvars] = pd;
-		current_function.nvars++;
+			current_function.vars[current_function.nvars] = pd;
+			current_function.nvars++;
+		}
+
 		free($1);
-		free($2);
+		p = $2.head;
+
+		for(;p != NULL; )
+		{
+			struct init_declarator_list_element *tmp = p;
+
+			free(p -> node -> name);
+			if(p -> node -> init_val)
+				free(p -> node -> init_val);
+
+			p = p -> next;
+			free(tmp -> node);
+			free(tmp);
+		}
+
 	}
 	;
 
@@ -256,12 +283,53 @@ declaration_specifiers
 
 init_declarator_list
 	: init_declarator
+	{
+		struct init_declarator_list_element *tmp;
+		if((tmp = malloc(sizeof(struct init_declarator_list_element))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if((tmp -> node = malloc(sizeof(init_declarator))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		tmp -> node -> name = $1.name;
+		tmp -> node -> init_val = $1.init_val;
+
+		tmp -> next = NULL;
+		$$.head = tmp;
+	}
 	| init_declarator_list ',' init_declarator
+	{
+		struct init_declarator_list_element *p = $1.head;
+		for(;p -> next; p = p -> next);
+
+
+		if((p -> next = malloc(sizeof(struct init_declarator_list_element))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if((p -> next -> node = malloc(sizeof(init_declarator))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		p -> next -> node -> name = $3.name;
+		p -> next -> node -> init_val = $3.init_val;
+
+		p -> next -> next = NULL;
+
+		$$ = $1;
+	}
 	;
 
 init_declarator
 	: declarator
+	{
+		init_declarator_set(&$$, $1, NULL);
+		free($1);
+	}
 	| declarator '=' initializer
+	{
+//todo: добавить инициализацию
+		init_declarator_set(&$$, $1, NULL);		
+		free($1);
+	}
 	;
 
 storage_class_specifier
