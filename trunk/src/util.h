@@ -12,6 +12,10 @@
 
 #include <stdio.h>
 
+
+static size_t unique_val;
+
+
 /**
 Переобразовываем строки с типом языка СИ в строку с типом архитектуры "Композит".
 Если dst == NULL то выделяется буфер подходящего размера и возвращается указатель на него. В этом случае 
@@ -203,6 +207,20 @@ int function_set_name(function *func, const char *name);
 parameter_declaration *function_get_var(const function *func, const char *name);
 
 
+
+/**
+Копирование переменной с именем name в функции func во временное значение и возврат строки с именем копии. Если
+переменной с требуемым именем не существует возвращается NULL.
+@param func - функция, в которой осуществляется копирование
+@param name - имя копируемой переменной
+return указатель на имя скопированной переменной
+*/
+
+const char * const function_copy_var(function *func, const char *name);
+
+
+
+
 /**
 Освобождение занимаемой структорой памяти
 @param func - указатель на структуру, освобождение полей которой осуществляется
@@ -285,6 +303,21 @@ typedef struct
 {
 	char *result_name;
 } expression;
+
+
+
+
+/**
+Перечисление операторов языка СИ
+*/
+
+typedef enum  
+{  
+	OP_PLUS,
+	OP_MIN
+//....
+} COperator;
+
 
 
 #endif

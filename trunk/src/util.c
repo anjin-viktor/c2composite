@@ -889,3 +889,90 @@ parameter_declaration *function_get_var(const function *func, const char *name)
 
 	return res;
 }
+
+
+
+
+const char * const function_copy_var(function *func, const char *name)
+{
+	parameter_declaration pd, *pd_old;
+	pd_old = function_get_var(func, name);
+	char *old_name;
+
+	if(pd_old == NULL)
+	{
+		int i;
+		char flag = 0;
+		for(i=0; i<func -> nparams && !flag; i++)
+		{
+			if(strcmp(func -> param_names[i], name) == 0)
+			{
+				if((pd.name = malloc(sizeof(char) * (strlen(func -> param_names[i]) + 16))) == NULL)
+					return NULL;
+
+				if((old_name = malloc(sizeof(char) * (strlen(func -> param_names[i]) + 1))) == NULL)
+				{
+					free(pd.name);
+					return NULL;
+				}
+
+				strcpy(old_name, func -> param_names[i]);
+				sprintf(pd.name, "%s_%d", func -> param_names[i], unique_val++);
+
+				pd.type = type_composite_to_str(NULL, func -> param_types[i], 0);
+
+				if(pd.type == NULL)
+				{
+					free(pd.name);
+					free(old_name);
+					return NULL;
+				}
+
+				flag = 1;
+			}
+		}
+
+		if(flag == 0)
+			return NULL;
+	}
+	else
+	{
+		if((old_name = malloc(sizeof(char) * (strlen(pd_old -> name) + 16))) == NULL)
+			return NULL;
+
+		if((pd.name = malloc(sizeof(char) * (strlen(pd_old -> name) + 16))) == NULL)
+		{
+			free(old_name);
+			return NULL;
+		}
+
+
+		sprintf(pd.name, "%s_%d", pd_old -> name, unique_val++);
+		strcpy(old_name, pd_old -> name);
+
+
+		if((pd.type = malloc(sizeof(char) * (strlen(pd_old -> type) + 1))) == NULL)
+		{
+			free(pd.name);
+			free(old_name);
+			return NULL;
+		}
+
+		strcpy(pd.type, pd_old -> type);
+	}
+
+	if((func -> vars = realloc(func -> vars, 
+		(func -> nvars + 1) * sizeof(parameter_declaration))) == NULL)
+	{
+		free(pd.name);
+		free(old_name);
+		free(pd.type);
+		return NULL;
+	}
+
+
+	func -> vars[func -> nvars] = pd;
+	(func -> nvars)++;
+
+	return func -> vars[func -> nvars-1].name;
+}

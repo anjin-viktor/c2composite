@@ -543,3 +543,88 @@ void function_get_var_test(void)
 	CU_ASSERT_EQUAL(function_get_var(NULL, "name2"), NULL);
 }
 
+
+
+
+void  function_copy_var_test(void)
+{
+	CompositeType param_types[4] = {MOD32, UCHAR, SSHORT, SINT};
+	char *param_names[4] = {"param1", "param2", "param3", "param4"};
+ 	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0, NULL, 0};
+	parameter_declaration *pdl = malloc(2 * sizeof(parameter_declaration));
+	CU_ASSERT_TRUE(pdl != NULL);
+
+	pdl[0].name = malloc((strlen("name1") + 1) * sizeof(char));
+	CU_ASSERT_TRUE(pdl[0].name != NULL);
+	pdl[0].type = malloc((strlen("type1") + 1) * sizeof(char));
+	CU_ASSERT_TRUE(pdl[0].type != NULL);
+	pdl[0].init_str = NULL;
+
+	pdl[1].name = malloc((strlen("name2") + 1) * sizeof(char));
+	CU_ASSERT_TRUE(pdl[1].name != NULL);
+	pdl[1].type = malloc((strlen("type2") + 1) * sizeof(char));
+	CU_ASSERT_TRUE(pdl[1].type != NULL);
+	pdl[1].init_str = malloc((strlen("init2") + 1) * sizeof(char));
+	CU_ASSERT_TRUE(pdl[1].init_str != NULL);
+
+	strcpy(pdl[0].name, "name1");
+	strcpy(pdl[1].name, "name2");
+	strcpy(pdl[0].type, "type1");
+	strcpy(pdl[1].type, "type2");
+	strcpy(pdl[1].init_str, "init2");
+
+
+	func.vars = pdl;
+	func.nvars = 2;
+
+	const char * p = function_copy_var(&func, "name1"); 
+	CU_ASSERT_TRUE(p != NULL);
+	CU_ASSERT_STRING_EQUAL(function_get_var(&func, p) -> type, "type1");
+
+
+	p = function_copy_var(&func, "name2"); 
+	CU_ASSERT_TRUE(p != NULL);
+	CU_ASSERT_STRING_EQUAL(function_get_var(&func, p) -> type, "type2");
+
+	func.param_types = param_types;
+	func.param_names = param_names;
+	func.nparams = 4;
+
+	p = function_copy_var(&func, "name1"); 
+	CU_ASSERT_TRUE(p != NULL);
+	CU_ASSERT_STRING_EQUAL(function_get_var(&func, p) -> type, "type1");
+
+
+	p = function_copy_var(&func, "name2"); 
+	CU_ASSERT_TRUE(p != NULL);
+	CU_ASSERT_STRING_EQUAL(function_get_var(&func, p) -> type, "type2");
+
+	p = function_copy_var(&func, "param1"); 
+	CU_ASSERT_TRUE(p != NULL);
+
+	CU_ASSERT_STRING_EQUAL(function_get_var(&func, p) -> type, "mod32");
+
+
+	p = function_copy_var(&func, "param4"); 
+	CU_ASSERT_TRUE(p != NULL);
+	CU_ASSERT_STRING_EQUAL(function_get_var(&func, p) -> type, "sint");
+
+	p = function_copy_var(&func, "param5"); 
+	CU_ASSERT_TRUE(p == NULL);
+
+	p = function_copy_var(&func, "var"); 
+	CU_ASSERT_TRUE(p == NULL);
+
+	func.param_types = NULL;
+	func.param_names = NULL;
+	func.nparams = 0;
+
+	p = function_copy_var(&func, "param1"); 
+	CU_ASSERT_TRUE(p == NULL);
+
+	func.vars = NULL;
+	func.nvars = 0;
+
+	p = function_copy_var(&func, "name1"); 
+	CU_ASSERT_TRUE(p == NULL);
+}

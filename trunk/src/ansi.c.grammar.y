@@ -15,6 +15,7 @@ typedef union{
 	init_declarator id;
 	init_declarator_list lid;
 	expression expr;
+	COperator cop;
 } YYSTYPE;
 
 
@@ -26,8 +27,6 @@ YYSTYPE yylval;
 static char current_identifier[64];
 static function current_function;
 static char declaration_specifiers_buffer[1024];
-
-static size_t unique_val;
 
 %}
 
@@ -59,9 +58,12 @@ static size_t unique_val;
 %type<id> init_declarator
 %type<lid> init_declarator_list
 
+%type<cop> unary_operator;
+
 %type<expr> primary_expression postfix_expression unary_expression assignment_expression cast_expression multiplicative_expression
 %type<expr> additive_expression shift_expression relational_expression equality_expression conditional_expression
 %type<expr> and_expression  exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression 
+
 
 %start translation_unit 
 %%
@@ -88,175 +90,59 @@ postfix_expression
 	| postfix_expression PTR_OP IDENTIFIER
 	| postfix_expression INC_OP
 	{
-		parameter_declaration pd, *pd_old;
+		const char *const new_name = function_copy_var(&current_function, $1.result_name);
 		char *tmp;
-		char *old_name;
 
-		if((current_function.vars = realloc(current_function.vars, 
-			(current_function.nvars + 1) * sizeof(parameter_declaration))) == NULL)
+		if(new_name == NULL)
+		{
+			//обдумать поведение в данном случае
+			yyerror("error: variable not exists");
+		}
+	
+		if((tmp = (char *)malloc(sizeof(char) * (strlen($1.result_name) + strlen(new_name) + 16))) == NULL)
 			yyerror("internal error: memory allocation failed");
 
-		pd_old = function_get_var(&current_function, $1.result_name);
+		sprintf(tmp, "mov %s, %s", new_name, $1.result_name);
+		function_add_command(&current_function, tmp);
 
-
-		if(pd_old == NULL)
-		{
-			int i;
-			char flag = 0;
-			for(i=0; i<current_function.nparams && !flag; i++)
-			{
-				if(strcmp(current_function.param_names[i], $1.result_name) == 0)
-				{
-					if((pd.name = malloc(sizeof(char) * (strlen(current_function.param_names[i]) + 16))) == NULL)
-						yyerror("internal error: memory allocation failed");
-
-					if((old_name = malloc(sizeof(char) * (strlen(current_function.param_names[i]) + 1))) == NULL)
-						yyerror("internal error: memory allocation failed");
-
-					strcpy(old_name, current_function.param_names[i]);
-					sprintf(pd.name, "%s_%d", current_function.param_names[i], unique_val++);
-
-					pd.type = type_composite_to_str(NULL, current_function.param_types[i], 0);
-
-					if(pd.type == NULL)
-						yyerror("internal error: memory allocation failed");
-
-					flag = 1;
-				}
-			}
-
-			if(flag == 0)
-			{
-//обдумать поведение в данном случае
-				yyerror("error: variable not exists");
-			}
-		}
-		else
-		{
-			if((old_name = malloc(sizeof(char) * (strlen(pd_old -> name) + 16))) == NULL)
-				yyerror("internal error: memory allocation failed");
-
-			if((pd.name = malloc(sizeof(char) * (strlen(pd_old -> name) + 16))) == NULL)
-				yyerror("internal error: memory allocation failed");
-
-
-			sprintf(pd.name, "%s_%d", pd_old -> name, unique_val++);
-			strcpy(old_name, pd_old -> name);
-
-
-			if((pd.type = malloc(sizeof(char) * (strlen(pd_old -> type) + 1))) == NULL)
-				yyerror("internal error: memory allocation failed");
-
-			strcpy(pd.type, pd_old -> type);
-		}
-
-
-		current_function.vars[current_function.nvars] = pd;
-		current_function.nvars++;
+		sprintf(tmp, "add %s, 1", $1.result_name);
+		function_add_command(&current_function, tmp);
+		free(tmp);
 
 		$$.result_name = $1.result_name;
 
-		if(($$.result_name = (char *) realloc($1.result_name, sizeof(char) * (strlen(pd.name) + 1))) == NULL)
+		if(($$.result_name = (char *) realloc($1.result_name, sizeof(char) * (strlen(new_name) + 1))) == NULL)
 			yyerror("internal error: memory allocation failed");
 
-		strcpy($$.result_name, pd.name);			
-
-		if((tmp = (char *)malloc(sizeof(char) * (strlen($$.result_name) + strlen(old_name) + 16))) == NULL)
-			yyerror("internal error: memory allocation failed");
-
-		sprintf(tmp, "mov %s, %s", pd.name, old_name);
-		function_add_command(&current_function, tmp);
-
-		sprintf(tmp, "add %s, 1", old_name);
-		function_add_command(&current_function, tmp);
-		free(tmp);
-		free(old_name);
+		strcpy($$.result_name, new_name);			
 	}
 	| postfix_expression DEC_OP
 	{
-		parameter_declaration pd, *pd_old;
+		const char *const new_name = function_copy_var(&current_function, $1.result_name);
 		char *tmp;
-		char *old_name;
 
-		if((current_function.vars = realloc(current_function.vars, 
-			(current_function.nvars + 1) * sizeof(parameter_declaration))) == NULL)
+		if(new_name == NULL)
+		{
+			//обдумать поведение в данном случае
+			yyerror("error: variable not exists");
+		}
+	
+		if((tmp = (char *)malloc(sizeof(char) * (strlen($1.result_name) + strlen(new_name) + 16))) == NULL)
 			yyerror("internal error: memory allocation failed");
 
-		pd_old = function_get_var(&current_function, $1.result_name);
+		sprintf(tmp, "mov %s, %s", new_name, $1.result_name);
+		function_add_command(&current_function, tmp);
 
-
-		if(pd_old == NULL)
-		{
-			int i;
-			char flag = 0;
-			for(i=0; i<current_function.nparams && !flag; i++)
-			{
-				if(strcmp(current_function.param_names[i], $1.result_name) == 0)
-				{
-					if((pd.name = malloc(sizeof(char) * (strlen(current_function.param_names[i]) + 16))) == NULL)
-						yyerror("internal error: memory allocation failed");
-
-					if((old_name = malloc(sizeof(char) * (strlen(current_function.param_names[i]) + 1))) == NULL)
-						yyerror("internal error: memory allocation failed");
-
-					strcpy(old_name, current_function.param_names[i]);
-					sprintf(pd.name, "%s_%d", current_function.param_names[i], unique_val++);
-
-					pd.type = type_composite_to_str(NULL, current_function.param_types[i], 0);
-
-					if(pd.type == NULL)
-						yyerror("internal error: memory allocation failed");
-
-					flag = 1;
-				}
-			}
-
-			if(flag == 0)
-			{
-//обдумать поведение в данном случае
-				yyerror("error: variable not exists");
-			}
-		}
-		else
-		{
-			if((old_name = malloc(sizeof(char) * (strlen(pd_old -> name) + 16))) == NULL)
-				yyerror("internal error: memory allocation failed");
-
-			if((pd.name = malloc(sizeof(char) * (strlen(pd_old -> name) + 16))) == NULL)
-				yyerror("internal error: memory allocation failed");
-
-
-			sprintf(pd.name, "%s_%d", pd_old -> name, unique_val++);
-			strcpy(old_name, pd_old -> name);
-
-
-			if((pd.type = malloc(sizeof(char) * (strlen(pd_old -> type) + 1))) == NULL)
-				yyerror("internal error: memory allocation failed");
-
-			strcpy(pd.type, pd_old -> type);
-		}
-
-
-		current_function.vars[current_function.nvars] = pd;
-		current_function.nvars++;
+		sprintf(tmp, "sub %s, 1", $1.result_name);
+		function_add_command(&current_function, tmp);
+		free(tmp);
 
 		$$.result_name = $1.result_name;
 
-		if(($$.result_name = (char *) realloc($1.result_name, sizeof(char) * (strlen(pd.name) + 1))) == NULL)
+		if(($$.result_name = (char *) realloc($1.result_name, sizeof(char) * (strlen(new_name) + 1))) == NULL)
 			yyerror("internal error: memory allocation failed");
 
-		strcpy($$.result_name, pd.name);			
-
-		if((tmp = (char *)malloc(sizeof(char) * (strlen($$.result_name) + strlen(old_name) + 16))) == NULL)
-			yyerror("internal error: memory allocation failed");
-
-		sprintf(tmp, "mov %s, %s", pd.name, old_name);
-		function_add_command(&current_function, tmp);
-
-		sprintf(tmp, "sub %s, 1", old_name);
-		function_add_command(&current_function, tmp);
-		free(tmp);
-		free(old_name);
+		strcpy($$.result_name, new_name);	
 	}
 	;
 
@@ -297,15 +183,23 @@ unary_expression
 		$$.result_name = $2.result_name;		
 	}
 	| unary_operator cast_expression
+	{
+
+	}
 	| SIZEOF unary_expression
 	| SIZEOF '(' type_name ')'
 	;
 
 unary_operator
 	: '&'
+	{
+	}
 	| '*'
 	| '+'
 	| '-'
+	{
+		$$ = OP_MIN;
+	}
 	| '~'
 	| '!'
 	;
@@ -938,7 +832,6 @@ char *s;
 int main(int argc, char **argv)
 {
 	FILE *fp_in;
-	unique_val = 0;
 
 	if(argc != 3)
 	{
