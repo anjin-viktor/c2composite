@@ -12,6 +12,7 @@ void type_composite_to_str_test(void);
 void function_header_test(void);
 void function_set_name_test(void);
 void parameter_declaration_set_test(void);
+void function_var_test(void);
 
 
 
@@ -77,6 +78,13 @@ int main(int argc, char **argv)
 		CU_cleanup_registry();
 		return CU_get_error();		
 	}
+
+	if((CU_add_test(psuite, "test of  function_var()",  function_var_test) == NULL))
+	{
+		CU_cleanup_registry();
+		return CU_get_error();		
+	}
+
 	CU_basic_set_mode(CU_BRM_VERBOSE);
 	CU_basic_run_tests();
 	CU_cleanup_registry();

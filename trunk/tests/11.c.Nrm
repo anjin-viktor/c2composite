@@ -1,0 +1,13 @@
+.name function
+.var
+	uint name
+	sshort name_
+	ushort unname
+	uchar ch
+	schar sch
+	sint l
+	uint l_
+	sint l__
+.begin
+.end
+

@@ -217,6 +217,8 @@ declaration
 
 		current_function.vars[current_function.nvars] = pd;
 		current_function.nvars++;
+		free($1);
+		free($2);
 	}
 	;
 
@@ -471,6 +473,7 @@ parameter_declaration
 		parameter_declaration_set(&$$, tmp, $2, "");
 		free(tmp);
 		free($1);
+		free($2);
 	}
 	| declaration_specifiers abstract_declarator
 	| declaration_specifiers
@@ -612,6 +615,7 @@ function_definition
 			current_function.rettype = COMPOSITE_NO_TYPE;
 		}
 		free($2);
+		free($1);
 
 		str = function_header(NULL, &current_function, 0);
 
@@ -626,7 +630,7 @@ function_definition
 		free(str);
 
 		fprintf(fp_out, ".begin\n");
-		fprintf(fp_out, ".end\n");
+		fprintf(fp_out, ".end\n\n");
 
 		function_free(&current_function);
 		bzero(&current_function, sizeof(function));

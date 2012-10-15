@@ -1,5 +1,6 @@
 .name function
 .var
+	schar a
 .begin
 .end
 

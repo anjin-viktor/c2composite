@@ -153,10 +153,9 @@ void function_header_test(void)
 	char *dst_;
 	CompositeType param_types[4] = {MOD32, UCHAR, SSHORT, SINT};
 	char *param_names[4] = {"param1", "param2", "param3", "param4"};
+	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0};
 
 	CU_ASSERT_TRUE((int)(dst = (char *)malloc(sizeof(char) * 1024)));
-
-	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0};
 
 	dst = function_header(dst, &func, 1024);
 	dst_ = function_header(NULL, &func, 0);
@@ -325,4 +324,84 @@ void parameter_declaration_set_test(void)
 	free(pd.type);
 	free(pd.name);
 	free(pd.init_str);
+}
+
+
+
+void function_var_test(void)
+{
+	char *dst;
+	char *dst_;
+	parameter_declaration pdl[] = { {"name1", "type1", NULL}, {"name2", "type2", "init2"} };
+	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0};
+
+	CU_ASSERT_TRUE((int)(dst = (char *)malloc(sizeof(char) * 1024)));
+
+	dst = function_var(dst, &func, 1024);
+	dst_ = function_var(NULL, &func, 0);
+
+	CU_ASSERT_STRING_EQUAL(dst, "");
+	CU_ASSERT_STRING_EQUAL(dst_, "");
+	free(dst_);
+
+	func.vars = pdl;
+	func.nvars = 1;
+
+	dst = function_var(dst, &func, 1024);
+	dst_ = function_var(NULL, &func, 0);
+
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 name1\n");
+	CU_ASSERT_STRING_EQUAL(dst_, "\ttype1 name1\n");
+	free(dst_);
+
+	dst = function_var(dst, &func, 1);
+	CU_ASSERT_STRING_EQUAL(dst, "");
+
+	dst = function_var(dst, &func, 2);
+	CU_ASSERT_STRING_EQUAL(dst, "\t");
+
+	dst = function_var(dst, &func, 4);
+	CU_ASSERT_STRING_EQUAL(dst, "\tty");
+
+	dst = function_var(dst, &func, 7);
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1");
+
+	dst = function_var(dst, &func, 8);
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 ");
+
+	dst = function_var(dst, &func, 10);
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 na");
+
+	dst = function_var(dst, &func, 13);
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 name1");
+
+	dst = function_var(dst, &func, 14);
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 name1\n");
+
+	func.nvars = 2;
+
+	dst = function_var(dst, &func, 1024);
+	dst_ = function_var(NULL, &func, 0);
+
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 name1\n\ttype2 name2 init2\n");
+	CU_ASSERT_STRING_EQUAL(dst_, "\ttype1 name1\n\ttype2 name2 init2\n");
+
+	free(dst_);
+
+	dst = function_var(dst, &func, 15);
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 name1\n\t");
+
+	dst = function_var(dst, &func, 27);
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 name1\n\ttype2 name2 ");
+
+	dst = function_var(dst, &func, 28);
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 name1\n\ttype2 name2 i");
+
+	dst = function_var(dst, &func, 32);
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 name1\n\ttype2 name2 init2");
+
+	dst = function_var(dst, &func, 33);
+	CU_ASSERT_STRING_EQUAL(dst, "\ttype1 name1\n\ttype2 name2 init2\n");
+
+	free(dst);
 }

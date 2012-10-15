@@ -1,0 +1,26 @@
+.name function
+.var
+	uint name
+	sshort name_
+	ushort unname
+	uchar ch
+	schar sch
+	sint l
+	uint l_
+	sint l__
+.begin
+.end
+
+.name function ushort &__ret_val__, uint a, schar b, ushort c, schar d, uchar e
+.var
+	uint name
+	sshort name_
+	ushort unname
+	uchar ch
+	schar sch
+	sint l
+	uint l_
+	sint l__
+.begin
+.end
+
