@@ -249,6 +249,15 @@ unary_expression
 				break;
 			}
 
+			case OP_NOT:
+			{
+				sprintf(tmp, "mov %s, %s", new_name, $2.result_name);
+				function_add_command(&current_function, tmp);
+
+				sprintf(tmp, "not %s", new_name);
+				function_add_command(&current_function, tmp);
+			}
+
 			default:
 				break;
 		};
@@ -279,6 +288,9 @@ unary_operator
 		$$ = OP_MIN;
 	}
 	| '~'
+	{
+		$$ = OP_NOT;
+	}
 	| '!'
 	{
 		$$ = OP_LOG_COMPL;

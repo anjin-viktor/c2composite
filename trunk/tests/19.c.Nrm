@@ -1,0 +1,12 @@
+.name function sshort d
+.var
+	ushort b
+	ushort b_0
+	sshort d_1
+.begin
+mov b_0, b
+not b_0
+mov d_1, d
+not d_1
+.end
+

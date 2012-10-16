@@ -316,7 +316,8 @@ typedef enum
 {  
 	OP_PLUS,
 	OP_MIN,
-	OP_LOG_COMPL
+	OP_LOG_COMPL,
+	OP_NOT
 //....
 } COperator;
 
