@@ -200,12 +200,27 @@ int function_set_name(function *func, const char *name);
 
 /**
 Получение указателя на переменную с требуемым именем. Если такой переменной нет возвращается NULL.
-@param func - функций, для которой осуществляется поиск
+@param func - функция, для которой осуществляется поиск
 @param name - имя искомой переменной
 @return указатель на переменную, NULL, если она не найдена
 */
 
 parameter_declaration *function_get_var(const function *func, const char *name);
+
+
+
+
+/**
+Получение строки с типом переменной или параметра. Если dst == NULL создается буфер подходящего размера.
+В этом случае параметр n игнорируется.
+@param func - функция, среди переменных и параметров которой осуществляется поиск
+@param name - имя переменной, тип которой нужно узнать
+@param dst - буфер для записи результата
+@param n - размер буфера
+@return указатель на буфер с описанием типа, в случае отказа - NULL
+*/
+
+char *function_get_type(const function *func, const char *name, char *dst, size_t n);
 
 
 
@@ -332,6 +347,19 @@ typedef enum
 */
 
 char *unique_label_name(char *buff, size_t n);
+
+
+
+/**
+Получение уникальной переменной. Переменная заносится в список переменных функции
+Если buff == NULL то результат записывается в создаваемый буфер. При этом
+значение n не рассматривается.
+@param func - буфер для результата
+@param type - размер буфера
+@return указатель на буфер с именем переменной, NULL в случае отказа
+*/
+
+char *unique_var_name(function *func, const char *type);
 
 
 

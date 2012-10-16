@@ -19,6 +19,10 @@ void function_code_test(void);
 void function_get_var_test(void);
 void  function_copy_var_test(void);
 void unique_label_name_test(void);
+void unique_var_name_test(void);
+void function_get_type_test(void);
+
+
 
 
 int main(int argc, char **argv)
@@ -121,6 +125,18 @@ int main(int argc, char **argv)
 	}
 
 	if((CU_add_test(psuite, "test of  unique_label_name()",  unique_label_name_test) == NULL))
+	{
+		CU_cleanup_registry();
+		return CU_get_error();		
+	}
+
+	if((CU_add_test(psuite, "test of  unique_var_name()",  unique_var_name_test) == NULL))
+	{
+		CU_cleanup_registry();
+		return CU_get_error();		
+	}
+
+	if((CU_add_test(psuite, "test of  function_get_type()",  function_get_type_test) == NULL))
 	{
 		CU_cleanup_registry();
 		return CU_get_error();		

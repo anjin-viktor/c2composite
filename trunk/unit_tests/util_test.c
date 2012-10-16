@@ -644,3 +644,99 @@ void unique_label_name_test(void)
 
 	CU_ASSERT_EQUAL(unique_label_name(str, 10), NULL);
 }
+
+
+
+
+void unique_var_name_test(void)
+{
+	char *p;
+
+ 	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0, NULL, 0};
+
+
+	p = unique_var_name(&func, "type1");
+
+	CU_ASSERT_TRUE(p != NULL);
+	CU_ASSERT_STRING_EQUAL(function_get_var(&func, p) -> type, "type1");
+
+	p = unique_var_name(&func, "type2");
+
+	CU_ASSERT_TRUE(p != NULL);
+	CU_ASSERT_STRING_EQUAL(function_get_var(&func, p) -> type, "type2");
+}
+
+
+
+void function_get_type_test(void)
+{
+	char buff[128];
+	char *p;
+
+	CompositeType param_types[4] = {MOD32, UCHAR, SSHORT, SINT};
+	char *param_names[4] = {"param1", "param2", "param3", "param4"};
+ 	function func = {"name", COMPOSITE_NO_TYPE, NULL, NULL, 0, NULL, 0, NULL, 0};
+	parameter_declaration *pdl = malloc(2 * sizeof(parameter_declaration));
+	CU_ASSERT_TRUE(pdl != NULL);
+
+	pdl[0].name = malloc((strlen("name1") + 1) * sizeof(char));
+	CU_ASSERT_TRUE(pdl[0].name != NULL);
+	pdl[0].type = malloc((strlen("type1") + 1) * sizeof(char));
+	CU_ASSERT_TRUE(pdl[0].type != NULL);
+	pdl[0].init_str = NULL;
+
+	pdl[1].name = malloc((strlen("name2") + 1) * sizeof(char));
+	CU_ASSERT_TRUE(pdl[1].name != NULL);
+	pdl[1].type = malloc((strlen("type2") + 1) * sizeof(char));
+	CU_ASSERT_TRUE(pdl[1].type != NULL);
+	pdl[1].init_str = malloc((strlen("init2") + 1) * sizeof(char));
+	CU_ASSERT_TRUE(pdl[1].init_str != NULL);
+
+	strcpy(pdl[0].name, "name1");
+	strcpy(pdl[1].name, "name2");
+	strcpy(pdl[0].type, "type1");
+	strcpy(pdl[1].type, "type2");
+	strcpy(pdl[1].init_str, "init2");
+
+
+	func.vars = pdl;
+	func.nvars = 2;
+	func.nparams = 4;
+	func.param_names = param_names;
+	func.param_types = param_types;
+
+
+	p = function_get_type(&func, "param1", NULL, 128);
+	CU_ASSERT_TRUE(p != NULL);
+	CU_ASSERT_TRUE(function_get_type(&func, "param1", buff, 128) != NULL);
+	CU_ASSERT_STRING_EQUAL(buff, "mod32");
+	CU_ASSERT_STRING_EQUAL(p, "mod32");
+	free(p);
+
+
+	p = function_get_type(&func, "param3", NULL, 0);
+	CU_ASSERT_TRUE(p != NULL);
+	CU_ASSERT_TRUE(function_get_type(&func, "param2", buff, 128) != NULL);
+	CU_ASSERT_STRING_EQUAL(p, "sshort");
+	CU_ASSERT_STRING_EQUAL(buff, "uchar");
+	free(p);
+
+	p = function_get_type(&func, "param4", NULL, 0);
+	CU_ASSERT_TRUE(p != NULL);
+	CU_ASSERT_TRUE(function_get_type(&func, "param4", buff, 128) != NULL);
+	CU_ASSERT_STRING_EQUAL(p, "sint");
+	free(p);
+	CU_ASSERT_STRING_EQUAL(buff, "sint");
+
+	p = function_get_type(&func, "name1", NULL, 0);
+	CU_ASSERT_TRUE(p != NULL);
+	CU_ASSERT_TRUE(function_get_type(&func, "name1", buff, 128) != NULL);
+	CU_ASSERT_STRING_EQUAL(p, "type1");
+	CU_ASSERT_STRING_EQUAL(buff, "type1");
+	free(p);
+
+
+	CU_ASSERT_TRUE(function_get_type(&func, "name1", buff, 3) == NULL);
+	CU_ASSERT_TRUE(function_get_type(&func, "param2", buff, 3) == NULL);
+
+}

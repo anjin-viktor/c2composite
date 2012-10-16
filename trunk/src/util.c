@@ -982,7 +982,6 @@ const char * const function_copy_var(function *func, const char *name)
 
 
 
-
 char *unique_label_name(char *buff, size_t n)
 {
 	char *tmp_buff;
@@ -1004,4 +1003,102 @@ char *unique_label_name(char *buff, size_t n)
 		buff = tmp_buff;
 
 	return buff;
+}
+
+
+
+
+static char *create_unique_var_name(char *buff, size_t n)
+{
+	char *tmp_buff;
+
+	if((tmp_buff = malloc(sizeof(char) * (strlen("__var__") + 16))) == NULL)
+		return NULL;
+
+	sprintf(tmp_buff, "__var__%d", unique_val++);
+
+	if(buff)
+	{
+		if(strlen(tmp_buff) >= n)
+			return NULL;
+
+		strcpy(buff, tmp_buff);
+		free(tmp_buff);
+	}
+	else
+		buff = tmp_buff;
+
+	return buff;
+}
+
+char *unique_var_name(function *func, const char *type)
+{
+	char *tmp_buff;
+	parameter_declaration pd;
+
+	if((tmp_buff = create_unique_var_name(NULL, 0)) == NULL)
+		return NULL;
+
+	pd.init_str = NULL;
+	pd.name = tmp_buff;
+
+	if((pd.type = malloc(sizeof(char) * (strlen(type) + 1))) == NULL)
+	{
+		free(pd.name);
+		return NULL;
+	}
+
+	strcpy(pd.type, type);
+
+
+	if((func -> vars = realloc(func -> vars, 
+		(func -> nvars + 1) * sizeof(parameter_declaration))) == NULL)
+	{
+		free(pd.name);
+		free(pd.type);
+		return NULL;
+	}
+
+	func -> vars[func -> nvars] = pd;
+	(func -> nvars)++;
+
+	return func -> vars[func -> nvars - 1].name;
+}
+
+
+
+char *function_get_type(const function *func, const char *name, char *dst, size_t n)
+{
+	parameter_declaration *pd = function_get_var(func, name);
+	char *tmp = NULL;
+
+
+	if(pd == NULL)
+	{
+		int i=0;
+		for(;i<func -> nparams && tmp == NULL; i++)
+			if(strcmp(func -> param_names[i], name) == 0)
+				tmp = type_composite_to_str(NULL, func -> param_types[i], 0);
+	}
+	else
+	{
+		if((tmp = malloc(sizeof(char) * (strlen(pd -> type) + 1))) == NULL)
+			return 0;
+
+		strcpy(tmp, pd -> type);
+	}
+
+
+	if(dst == NULL)
+		dst = tmp;
+	else
+	{
+		if(n < (strlen(tmp) + 1))
+			return NULL;
+
+		strcpy(dst, tmp);
+		free(tmp);
+	}
+
+	return dst;
 }
