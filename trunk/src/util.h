@@ -204,6 +204,7 @@ int function_set_name(function *func, const char *name);
 @param name - имя искомой переменной
 @return указатель на переменную, NULL, если она не найдена
 */
+
 parameter_declaration *function_get_var(const function *func, const char *name);
 
 
@@ -314,9 +315,22 @@ typedef struct
 typedef enum  
 {  
 	OP_PLUS,
-	OP_MIN
+	OP_MIN,
+	OP_LOG_COMPL
 //....
 } COperator;
+
+
+
+/**
+Получение уникального имени метки. Если buff == NULL то результат записывается в создаваемый буфер. При этом
+значение n не рассматривается.
+@param buff - буфер для результата
+@param n - размер буфера
+@return указатель на буфер, NULL в случае отказа (если буфер слишком мал для имени)
+*/
+
+char *unique_label_name(char *buff, size_t n);
 
 
 

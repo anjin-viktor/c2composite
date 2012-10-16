@@ -193,7 +193,7 @@ unary_expression
 			yyerror("error: variable not exists");
 		}
 	
-		if((tmp = (char *)malloc(sizeof(char) * (strlen($2.result_name) + strlen(new_name) + 16))) == NULL)
+		if((tmp = (char *)malloc(sizeof(char) * (strlen($2.result_name) + strlen(new_name) + 64))) == NULL)
 			yyerror("internal error: memory allocation failed");
 
 		switch($1)
@@ -215,6 +215,38 @@ unary_expression
 				function_add_command(&current_function, tmp);
 			
 				break;				
+			}
+
+			case OP_LOG_COMPL:
+			{
+				char *label_zero;
+				char *label_end;
+
+				if((label_zero = unique_label_name(NULL, 0)) == NULL)
+					yyerror("internal error: memory allocation failed");
+
+				if((label_end = unique_label_name(NULL, 0)) == NULL)
+					yyerror("internal error: memory allocation failed");
+
+				sprintf(tmp, "cmp 0, %s", $2.result_name);
+				function_add_command(&current_function, tmp);
+				sprintf(tmp, "je %s", label_zero);
+				function_add_command(&current_function, tmp);
+				sprintf(tmp, "mov %s, 0", new_name);
+				function_add_command(&current_function, tmp);
+				sprintf(tmp, "jmp %s", label_end);
+				function_add_command(&current_function, tmp);
+
+				sprintf(tmp, "%s: mov %s, 1", label_zero, new_name);
+				function_add_command(&current_function, tmp);
+
+				sprintf(tmp, "%s:", label_end);
+				function_add_command(&current_function, tmp);
+
+				free(label_zero);
+				free(label_end);
+
+				break;
 			}
 
 			default:
@@ -248,6 +280,9 @@ unary_operator
 	}
 	| '~'
 	| '!'
+	{
+		$$ = OP_LOG_COMPL;
+	}
 	;
 
 cast_expression

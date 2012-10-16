@@ -978,3 +978,30 @@ const char * const function_copy_var(function *func, const char *name)
 
 	return func -> vars[func -> nvars-1].name;
 }
+
+
+
+
+
+char *unique_label_name(char *buff, size_t n)
+{
+	char *tmp_buff;
+
+	if((tmp_buff = malloc(sizeof(char) * (strlen("__label__") + 16))) == NULL)
+		return NULL;
+
+	sprintf(tmp_buff, "__label__%d", unique_val++);
+
+	if(buff)
+	{
+		if(strlen(tmp_buff) >= n)
+			return NULL;
+
+		strcpy(buff, tmp_buff);
+		free(tmp_buff);
+	}
+	else
+		buff = tmp_buff;
+
+	return buff;
+}

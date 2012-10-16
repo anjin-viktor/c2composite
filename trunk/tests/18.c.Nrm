@@ -1,0 +1,20 @@
+.name function sint d
+.var
+	ushort b
+	ushort b_0
+	sint d_3
+.begin
+cmp 0, b
+je __label__1
+mov b_0, 0
+jmp __label__2
+__label__1: mov b_0, 1
+__label__2:
+cmp 0, d
+je __label__4
+mov d_3, 0
+jmp __label__5
+__label__4: mov d_3, 1
+__label__5:
+.end
+

@@ -628,3 +628,19 @@ void  function_copy_var_test(void)
 	p = function_copy_var(&func, "name1"); 
 	CU_ASSERT_TRUE(p == NULL);
 }
+
+
+
+
+void unique_label_name_test(void)
+{
+	char str[32];
+	char *p;
+
+	CU_ASSERT_TRUE(unique_label_name(str, 32) != NULL);
+	CU_ASSERT_TRUE((p = unique_label_name(NULL, 1)) != NULL);
+
+	free(p);
+
+	CU_ASSERT_EQUAL(unique_label_name(str, 10), NULL);
+}

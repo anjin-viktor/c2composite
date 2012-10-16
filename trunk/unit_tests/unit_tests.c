@@ -18,6 +18,7 @@ void function_add_command_test(void);
 void function_code_test(void);
 void function_get_var_test(void);
 void  function_copy_var_test(void);
+void unique_label_name_test(void);
 
 
 int main(int argc, char **argv)
@@ -114,6 +115,12 @@ int main(int argc, char **argv)
 	}
 
 	if((CU_add_test(psuite, "test of  function_copy_var()",  function_copy_var_test) == NULL))
+	{
+		CU_cleanup_registry();
+		return CU_get_error();		
+	}
+
+	if((CU_add_test(psuite, "test of  unique_label_name()",  unique_label_name_test) == NULL))
 	{
 		CU_cleanup_registry();
 		return CU_get_error();		
