@@ -1,0 +1,12 @@
+.name f sint a
+.var
+	sshort b
+	sint __var__0
+	sint __var__1
+.begin
+mov __var__0, (sint) a
+add __var__0, (sint) b
+mov __var__1, __var__0
+add __var__1, a
+.end
+
