@@ -632,8 +632,84 @@ additive_expression
 
 shift_expression
 	: additive_expression
+	{
+		$$ = $1;
+	}
 	| shift_expression LEFT_OP additive_expression
+	{
+		char *type = function_get_type(&current_function, $1.result_name, NULL, 0);
+		char *new_name = unique_var_name(&current_function, type);
+
+		char *tmp;
+
+		size_t size, size_;
+
+		size = strlen($1.result_name);
+		size_ = strlen($3.result_name);
+
+		if(size_ > size)
+			size = size_;
+
+		if(new_name == NULL)
+			yyerror("error: variable not exists");
+	
+		if((tmp = (char *)malloc(sizeof(char) * (size + strlen(new_name) + 64))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		sprintf(tmp, "mov %s, %s", new_name, $1.result_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "shl %s, %s", new_name, $3.result_name);
+		function_add_command(&current_function, tmp);
+
+		free(tmp);
+		free($3.result_name);
+
+		if(($$.result_name = (char *) realloc($1.result_name, sizeof(char) * (strlen(new_name) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$.result_name, new_name);
+
+		free(type);
+	}
 	| shift_expression RIGHT_OP additive_expression
+	{
+		char *type = function_get_type(&current_function, $1.result_name, NULL, 0);
+		char *new_name = unique_var_name(&current_function, type);
+
+		char *tmp;
+
+		size_t size, size_;
+
+		size = strlen($1.result_name);
+		size_ = strlen($3.result_name);
+
+		if(size_ > size)
+			size = size_;
+
+		if(new_name == NULL)
+			yyerror("error: variable not exists");
+	
+		if((tmp = (char *)malloc(sizeof(char) * (size + strlen(new_name) + 64))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		sprintf(tmp, "mov %s, %s", new_name, $1.result_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "shr %s, %s", new_name, $3.result_name);
+		function_add_command(&current_function, tmp);
+
+		free(tmp);
+		free($3.result_name);
+
+		if(($$.result_name = (char *) realloc($1.result_name, sizeof(char) * (strlen(new_name) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$.result_name, new_name);
+
+		free(type);
+
+	}
 	;
 
 relational_expression
