@@ -53,7 +53,7 @@ static char declaration_specifiers_buffer[1024];
 
 %token CASE DEFAULT IF ELSE SWITCH WHILE DO FOR GOTO CONTINUE BREAK RETURN
 
-%type<s> declarator direct_declarator declaration_specifiers type_specifier 
+%type<s> declarator direct_declarator declaration_specifiers type_specifier specifier_qualifier_list type_name
 %type<pd> parameter_declaration
 %type<id> init_declarator
 %type<lid> init_declarator_list
@@ -63,7 +63,7 @@ static char declaration_specifiers_buffer[1024];
 %type<expr> primary_expression postfix_expression unary_expression assignment_expression cast_expression multiplicative_expression
 %type<expr> additive_expression shift_expression relational_expression equality_expression conditional_expression
 %type<expr> and_expression  exclusive_or_expression inclusive_or_expression logical_and_expression logical_or_expression 
-//%type<expr> multiplicative_expression
+
 
 %start translation_unit 
 %%
@@ -300,6 +300,45 @@ unary_operator
 cast_expression
 	: unary_expression
 	| '(' type_name ')' cast_expression
+	{
+		parameter_declaration pd;
+		char *tmp;
+
+		pd.init_str = NULL;
+
+		if((pd.type = type_c_to_composite(NULL, $2, 0) )== NULL)
+			yyerror("internal error: memory allocation failed");
+
+
+		pd.name = unique_var_name(&current_function, pd.type);
+
+		if(pd.name == NULL)
+		{
+			free(pd.type);
+			yyerror("internal error: memory allocation failed");
+		}
+	
+		if((current_function.vars = realloc(current_function.vars, 
+			(current_function.nvars + 1) * sizeof(parameter_declaration))) == NULL)
+		{
+			free(pd.type);
+			yyerror("internal error: memory allocation failed");
+		}
+
+
+		if((tmp = malloc(strlen(pd.name) + strlen($4.result_name) + strlen(pd.type) + strlen("mov")+ 16)) == NULL)
+		{
+			free(pd.type);
+			yyerror("internal error: memory allocation failed");
+		}
+
+		sprintf(tmp, "mov %s, (%s)%s", pd.name, pd.type, $4.result_name);
+		function_add_command(&current_function, tmp);
+
+		free(tmp);
+		free(pd.type);
+		free($2);
+	}
 	;
 
 multiplicative_expression
@@ -720,7 +759,23 @@ struct_declaration
 
 specifier_qualifier_list
 	: type_specifier specifier_qualifier_list
+	{
+		if(($$ = malloc(sizeof(char) * (strlen($1) + 8 + strlen($2)))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$, $1);
+		strcat($$, " ");
+		strcat($$, $2);
+
+		free($2);
+	}
 	| type_specifier
+	{
+		if(($$ = malloc(sizeof(char) * (strlen($1) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$, $1);
+	}
 	| type_qualifier specifier_qualifier_list
 	| type_qualifier
 	;
@@ -793,13 +848,6 @@ parameter_type_list
 parameter_list
 	: parameter_declaration
 	{
-/*		char *tmp;
-		if((current_function.vars = realloc(current_function.vars, (current_function.nvars + 1) * sizeof(parameter_declaration))) == NULL)
-			yyerror("internal error: memory allocation failed");
-
-		current_function.vars[current_function.nvars] = $1;
-		current_function.nvars++;
-*/
 		if(strcmp($1.type, ""))
 		{
 			if((current_function.param_types = realloc(current_function.param_types,
@@ -826,12 +874,6 @@ parameter_list
 	}
 	| parameter_list ',' parameter_declaration
 	{
-/*		if((current_function.vars = realloc(current_function.vars, (current_function.nvars + 1) * sizeof(parameter_declaration))) == NULL)
-			yyerror("internal error: memory allocation failed");
-
-		current_function.vars[current_function.nvars] = $3;
-		current_function.nvars++;
-*/
 		if((current_function.param_types = realloc(current_function.param_types,
 			(current_function.nparams + 1) * sizeof(CompositeType))) == NULL)
 			yyerror("internal error: memory allocation failed");
@@ -883,6 +925,14 @@ identifier_list
 
 type_name
 	: specifier_qualifier_list
+	{
+		$$ = $1;
+		if(($$ = malloc(sizeof(char) * (strlen($1) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$, $1);
+		free($1);
+	}
 	| specifier_qualifier_list abstract_declarator
 	;
 

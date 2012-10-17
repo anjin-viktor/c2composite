@@ -1,0 +1,10 @@
+.name f sint a
+.var
+	sshort b
+	uchar __var__0
+	sint __var__1
+.begin
+mov __var__0, (uchar)a
+mov __var__1, (sint)b
+.end
+
