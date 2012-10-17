@@ -1,0 +1,19 @@
+.name function sshort d, sshort d1, uchar c
+.var
+	uchar b
+	uchar b1
+	uchar __var__0
+	uchar __var__1
+	uchar __var__2
+	sshort __var__3
+.begin
+mov __var__0, b
+mod __var__0, b1
+mov __var__1, __var__0
+mod __var__1, b
+mov __var__2, __var__1
+mod __var__2, c
+mov __var__3, d
+mod __var__3, d1
+.end
+
