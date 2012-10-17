@@ -740,3 +740,70 @@ void function_get_type_test(void)
 	CU_ASSERT_TRUE(function_get_type(&func, "param2", buff, 3) == NULL);
 
 }
+
+
+
+
+void implicit_cast_type_test(void)
+{
+	char * types[] = { "uchar", "schar", "ushort", "sshort", "uint", "sint" };
+	char buff[32];
+	char *buff_;
+
+	implicit_cast_type(types[0], types[4], buff, 32);
+	buff_ = implicit_cast_type(types[0], types[4], NULL, 0);
+
+	CU_ASSERT_STRING_EQUAL(buff, "uint");
+	CU_ASSERT_STRING_EQUAL(buff_, "uint");
+	free(buff_);
+
+	implicit_cast_type(types[5], types[4], buff, 32);
+	buff_ = implicit_cast_type(types[5], types[4], NULL, 0);
+
+	CU_ASSERT_STRING_EQUAL(buff, "uint");
+	CU_ASSERT_STRING_EQUAL(buff_, "uint");
+	free(buff_);
+
+	implicit_cast_type(types[2], types[4], buff, 32);
+	buff_ = implicit_cast_type(types[2], types[4], NULL, 0);
+
+	CU_ASSERT_STRING_EQUAL(buff, "uint");
+	CU_ASSERT_STRING_EQUAL(buff_, "uint");
+	free(buff_);
+
+	implicit_cast_type(types[2], types[5], buff, 32);
+	buff_ = implicit_cast_type(types[2], types[5], NULL, 0);
+
+	CU_ASSERT_STRING_EQUAL(buff, "sint");
+	CU_ASSERT_STRING_EQUAL(buff_, "sint");
+	free(buff_);
+
+	implicit_cast_type(types[0], types[3], buff, 32);
+	buff_ = implicit_cast_type(types[0], types[3], NULL, 0);
+
+	CU_ASSERT_STRING_EQUAL(buff, "sshort");
+	CU_ASSERT_STRING_EQUAL(buff_, "sshort");
+	free(buff_);
+
+	implicit_cast_type(types[2], types[3], buff, 32);
+	buff_ = implicit_cast_type(types[2], types[3], NULL, 0);
+
+	CU_ASSERT_STRING_EQUAL(buff, "ushort");
+	CU_ASSERT_STRING_EQUAL(buff_, "ushort");
+	free(buff_);
+
+	implicit_cast_type(types[1], types[0], buff, 32);
+	buff_ = implicit_cast_type(types[1], types[0], NULL, 0);
+
+	CU_ASSERT_STRING_EQUAL(buff, "uchar");
+	CU_ASSERT_STRING_EQUAL(buff_, "uchar");
+	free(buff_);
+
+
+	implicit_cast_type(types[1], types[1], buff, 32);
+	buff_ = implicit_cast_type(types[1], types[1], NULL, 0);
+
+	CU_ASSERT_STRING_EQUAL(buff, "schar");
+	CU_ASSERT_STRING_EQUAL(buff_, "schar");
+	free(buff_);
+}

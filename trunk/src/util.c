@@ -1102,3 +1102,34 @@ char *function_get_type(const function *func, const char *name, char *dst, size_
 
 	return dst;
 }
+
+
+
+
+char *implicit_cast_type(const char *type1, const char *type2, char *buff, size_t n)
+{
+	CompositeType t1, t2, res;
+	if(type1 == NULL || type2 == NULL)
+		return NULL;
+
+	t1 = type_composite_from_str(type1);
+	t2 = type_composite_from_str(type2);
+
+	if(t1 == UINT || t2 == UINT)
+		res = UINT;
+	else if(t1 == SINT || t2 == SINT)
+		res = SINT;
+	else if(t1 == USHORT || t2 == USHORT)
+		res = USHORT;
+	else if(t1 == SSHORT || t2 == SSHORT)
+		res = SSHORT;
+	else if(t1 == UCHAR || t2 == UCHAR)
+		res = UCHAR;
+	else 
+		res = SCHAR;
+
+
+	buff = type_composite_to_str(buff, res, n);
+
+	return buff;
+}

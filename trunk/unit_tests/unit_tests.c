@@ -21,6 +21,7 @@ void  function_copy_var_test(void);
 void unique_label_name_test(void);
 void unique_var_name_test(void);
 void function_get_type_test(void);
+void implicit_cast_type_test(void);
 
 
 
@@ -142,6 +143,11 @@ int main(int argc, char **argv)
 		return CU_get_error();		
 	}
 
+	if((CU_add_test(psuite, "test of  implicit_cast_type()",  implicit_cast_type_test) == NULL))
+	{
+		CU_cleanup_registry();
+		return CU_get_error();		
+	}
 
 	CU_basic_set_mode(CU_BRM_VERBOSE);
 	CU_basic_run_tests();
