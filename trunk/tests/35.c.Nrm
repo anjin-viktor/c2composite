@@ -1,0 +1,22 @@
+.name f sint a
+.var
+	ushort b
+	ushort c
+	sint __var__0
+	sint __var__1
+	ushort __var__2
+	sint __var__3
+	sint __var__4
+.begin
+mov __var__0, (sint) a
+xor __var__0, (sint) b
+mov __var__1, __var__0
+xor __var__1, a
+mov __var__2, b
+xor __var__2, c
+mov __var__3, (sint) __var__2
+xor __var__3, (sint) a
+mov __var__4, (sint) b
+xor __var__4, (sint) a
+.end
+

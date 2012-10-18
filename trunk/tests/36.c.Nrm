@@ -1,0 +1,19 @@
+.name f sint a
+.var
+	ushort b
+	ushort c
+	sint __var__0
+	ushort __var__1
+	sint __var__2
+	sint __var__3
+.begin
+mov __var__0, (sint) a
+or __var__0, (sint) b
+mov __var__1, b
+or __var__1, c
+mov __var__2, (sint) __var__1
+or __var__2, (sint) a
+mov __var__3, (sint) b
+or __var__3, (sint) a
+.end
+

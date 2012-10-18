@@ -1136,17 +1136,179 @@ equality_expression
 
 and_expression
 	: equality_expression
+	{
+		$$.result_name = $1.result_name;
+	}
 	| and_expression '&' equality_expression
+	{
+		char necessary_cast = 0;
+		char *type1 = function_get_type(&current_function, $1.result_name, NULL, 0);
+		char *type2 = function_get_type(&current_function, $3.result_name, NULL, 0);
+		char *type = implicit_cast_type(type1, type2, NULL, 0);
+		char *new_name = unique_var_name(&current_function, type);
+		char *tmp;
+		size_t size, size_;
+
+		size = strlen($1.result_name);
+		size_ = strlen($3.result_name);
+
+		if(strcmp(type1, type2) != 0)
+			necessary_cast = 1;
+
+		if(size_ > size)
+			size = size_;
+
+		if(new_name == NULL)
+			yyerror("error: variable not exists");
+	
+		if((tmp = (char *)malloc(sizeof(char) * (size + strlen(new_name) + 
+			64 + (necessary_cast? strlen(type): 0)))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if(necessary_cast)
+			sprintf(tmp, "mov %s, (%s) %s", new_name, type, $1.result_name);
+		else
+			sprintf(tmp, "mov %s, %s", new_name, $1.result_name);
+
+		function_add_command(&current_function, tmp);
+
+		if(necessary_cast)
+			sprintf(tmp, "and %s, (%s) %s", new_name, type, $3.result_name);
+		else
+			sprintf(tmp, "and %s, %s", new_name, $3.result_name);
+
+		function_add_command(&current_function, tmp);
+
+		free(tmp);
+		free($3.result_name);
+
+		if(($$.result_name = (char *) realloc($1.result_name, sizeof(char) * (strlen(new_name) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$.result_name, new_name);
+
+		free(type);
+		free(type1);
+		free(type2);
+	}
 	;
 
 exclusive_or_expression
 	: and_expression
+	{
+		$$.result_name = $1.result_name;
+	}
 	| exclusive_or_expression '^' and_expression
+	{
+		char necessary_cast = 0;
+		char *type1 = function_get_type(&current_function, $1.result_name, NULL, 0);
+		char *type2 = function_get_type(&current_function, $3.result_name, NULL, 0);
+		char *type = implicit_cast_type(type1, type2, NULL, 0);
+		char *new_name = unique_var_name(&current_function, type);
+		char *tmp;
+		size_t size, size_;
+
+		size = strlen($1.result_name);
+		size_ = strlen($3.result_name);
+
+		if(strcmp(type1, type2) != 0)
+			necessary_cast = 1;
+
+		if(size_ > size)
+			size = size_;
+
+		if(new_name == NULL)
+			yyerror("error: variable not exists");
+	
+		if((tmp = (char *)malloc(sizeof(char) * (size + strlen(new_name) + 
+			64 + (necessary_cast? strlen(type): 0)))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if(necessary_cast)
+			sprintf(tmp, "mov %s, (%s) %s", new_name, type, $1.result_name);
+		else
+			sprintf(tmp, "mov %s, %s", new_name, $1.result_name);
+
+		function_add_command(&current_function, tmp);
+
+		if(necessary_cast)
+			sprintf(tmp, "xor %s, (%s) %s", new_name, type, $3.result_name);
+		else
+			sprintf(tmp, "xor %s, %s", new_name, $3.result_name);
+
+		function_add_command(&current_function, tmp);
+
+		free(tmp);
+		free($3.result_name);
+
+		if(($$.result_name = (char *) realloc($1.result_name, sizeof(char) * (strlen(new_name) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$.result_name, new_name);
+
+		free(type);
+		free(type1);
+		free(type2);
+	}
 	;
 
 inclusive_or_expression
 	: exclusive_or_expression
+	{
+		$$.result_name = $1.result_name;
+	}
 	| inclusive_or_expression '|' exclusive_or_expression
+	{
+		char necessary_cast = 0;
+		char *type1 = function_get_type(&current_function, $1.result_name, NULL, 0);
+		char *type2 = function_get_type(&current_function, $3.result_name, NULL, 0);
+		char *type = implicit_cast_type(type1, type2, NULL, 0);
+		char *new_name = unique_var_name(&current_function, type);
+		char *tmp;
+		size_t size, size_;
+
+		size = strlen($1.result_name);
+		size_ = strlen($3.result_name);
+
+		if(strcmp(type1, type2) != 0)
+			necessary_cast = 1;
+
+		if(size_ > size)
+			size = size_;
+
+		if(new_name == NULL)
+			yyerror("error: variable not exists");
+	
+		if((tmp = (char *)malloc(sizeof(char) * (size + strlen(new_name) + 
+			64 + (necessary_cast? strlen(type): 0)))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if(necessary_cast)
+			sprintf(tmp, "mov %s, (%s) %s", new_name, type, $1.result_name);
+		else
+			sprintf(tmp, "mov %s, %s", new_name, $1.result_name);
+
+		function_add_command(&current_function, tmp);
+
+		if(necessary_cast)
+			sprintf(tmp, "or %s, (%s) %s", new_name, type, $3.result_name);
+		else
+			sprintf(tmp, "or %s, %s", new_name, $3.result_name);
+
+		function_add_command(&current_function, tmp);
+
+		free(tmp);
+		free($3.result_name);
+
+		if(($$.result_name = (char *) realloc($1.result_name, sizeof(char) * (strlen(new_name) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$.result_name, new_name);
+
+		free(type);
+		free(type1);
+		free(type2);
+	}
 	;
 
 logical_and_expression
