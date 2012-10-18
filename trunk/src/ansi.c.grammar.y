@@ -714,8 +714,119 @@ shift_expression
 
 relational_expression
 	: shift_expression
+	{
+		$$ = $1;		
+	}
 	| relational_expression '<' shift_expression
+	{
+		char *label_one;
+		char *label_end;
+		char necessary_cast = 0;
+
+
+		char *type1 = function_get_type(&current_function, $1.result_name, NULL, 0);
+		char *type2 = function_get_type(&current_function, $3.result_name, NULL, 0);
+		char *type = implicit_cast_type(type1, type2, NULL, 0);
+		char *new_name = unique_var_name(&current_function, type);
+
+		char *tmp;
+
+		necessary_cast = strcmp(type1, type2);
+
+		if(new_name == NULL)
+		{
+			//обдумать поведение в данном случае
+			yyerror("error: variable not exists");
+		}
+
+		if((tmp = (char *)malloc(sizeof(char) * (strlen($3.result_name) + strlen($1.result_name) + 64))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+
+		if((label_one = unique_label_name(NULL, 0)) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if((label_end = unique_label_name(NULL, 0)) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if(necessary_cast)
+			sprintf(tmp, "cmp (%s)%s, (%s)%s", type, $1.result_name, type, $3.result_name);
+		else
+			sprintf(tmp, "cmp %s, %s", $1.result_name, $3.result_name);
+		function_add_command(&current_function, tmp);
+		sprintf(tmp, "je %s", label_one);
+		function_add_command(&current_function, tmp);
+		sprintf(tmp, "mov %s, 0", new_name);
+		function_add_command(&current_function, tmp);
+		sprintf(tmp, "jmp %s", label_end);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "%s: mov %s, 1", label_one, new_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "%s:", label_end);
+		function_add_command(&current_function, tmp);
+
+		free(label_one);
+		free(label_end);
+
+		break;
+	}
 	| relational_expression '>' shift_expression
+	{
+		char *label_one;
+		char *label_end;
+		char necessary_cast = 0;
+
+
+		char *type1 = function_get_type(&current_function, $1.result_name, NULL, 0);
+		char *type2 = function_get_type(&current_function, $3.result_name, NULL, 0);
+		char *type = implicit_cast_type(type1, type2, NULL, 0);
+		char *new_name = unique_var_name(&current_function, type);
+
+		char *tmp;
+
+		necessary_cast = strcmp(type1, type2);
+
+		if(new_name == NULL)
+		{
+			//обдумать поведение в данном случае
+			yyerror("error: variable not exists");
+		}
+
+		if((tmp = (char *)malloc(sizeof(char) * (strlen($3.result_name) + strlen($1.result_name) + 64))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+
+		if((label_one = unique_label_name(NULL, 0)) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if((label_end = unique_label_name(NULL, 0)) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if(necessary_cast)
+			sprintf(tmp, "cmp (%s)%s, (%s)%s", type, $1.result_name, type, $3.result_name);
+		else
+			sprintf(tmp, "cmp %s, %s", $1.result_name, $3.result_name);
+		function_add_command(&current_function, tmp);
+		sprintf(tmp, "jg %s", label_one);
+		function_add_command(&current_function, tmp);
+		sprintf(tmp, "mov %s, 0", new_name);
+		function_add_command(&current_function, tmp);
+		sprintf(tmp, "jmp %s", label_end);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "%s: mov %s, 1", label_one, new_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "%s:", label_end);
+		function_add_command(&current_function, tmp);
+
+		free(label_one);
+		free(label_end);
+
+		break;
+	}
 	| relational_expression LE_OP shift_expression
 	| relational_expression GE_OP shift_expression
 	;
