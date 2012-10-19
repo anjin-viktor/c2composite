@@ -3,26 +3,28 @@
 	ushort b
 	ushort c
 	sint __var__0
-	sint __var__3
-	ushort __var__6
+	ushort __var__3
+	sint __var__6
 .begin
 cmp (sint)a, (sint)b
-jl __label__1
+je __label__1
 mov __var__0, 0
 jmp __label__2
 __label__1: mov __var__0, 1
 __label__2:
-cmp (sint)b, (sint)a
-jl __label__4
+cmp c, b
+je __label__4
 mov __var__3, 0
 jmp __label__5
 __label__4: mov __var__3, 1
 __label__5:
-cmp c, b
-jl __label__7
-mov __var__6, 0
+cmp __var__0, 0
+je __label__8
+cmp __var__3, 0
+je __label__8
+mov __var__6, 1
 jmp __label__8
-__label__7: mov __var__6, 1
+__label__7: mov __var__6, 0
 __label__8:
 .end
 

@@ -754,7 +754,7 @@ relational_expression
 		else
 			sprintf(tmp, "cmp %s, %s", $1.result_name, $3.result_name);
 		function_add_command(&current_function, tmp);
-		sprintf(tmp, "je %s", label_one);
+		sprintf(tmp, "jl %s", label_one);
 		function_add_command(&current_function, tmp);
 		sprintf(tmp, "mov %s, 0", new_name);
 		function_add_command(&current_function, tmp);
@@ -1313,17 +1313,170 @@ inclusive_or_expression
 
 logical_and_expression
 	: inclusive_or_expression
+	{
+		$$.result_name = $1.result_name;
+	}
 	| logical_and_expression AND_OP inclusive_or_expression
+	{
+		char *label_zero;
+		char *label_end;
+		char necessary_cast = 0;
+
+		char *type1 = function_get_type(&current_function, $1.result_name, NULL, 0);
+		char *type2 = function_get_type(&current_function, $3.result_name, NULL, 0);
+		char *type = implicit_cast_type(type1, type2, NULL, 0);
+		char *new_name = unique_var_name(&current_function, type);
+
+		char *tmp;
+
+		necessary_cast = strcmp(type1, type2);
+
+		if(new_name == NULL)
+		{
+			//обдумать поведение в данном случае
+			yyerror("error: variable not exists");
+		}
+
+		if((tmp = (char *)malloc(sizeof(char) * (strlen($3.result_name) + strlen($1.result_name) + 64))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if((label_zero = unique_label_name(NULL, 0)) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if((label_end = unique_label_name(NULL, 0)) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+
+		sprintf(tmp, "cmp %s, 0", $1.result_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "je %s", label_end);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "cmp %s, 0", $3.result_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "je %s", label_end);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "mov %s, 1", new_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "jmp %s", label_end);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "%s: mov %s, 0", label_zero, new_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "%s:", label_end);
+		function_add_command(&current_function, tmp);
+
+		free(label_zero);
+		free(label_end);
+
+		free(tmp);
+		free($1.result_name);
+		free($3.result_name);
+		free(type1);
+		free(type2);
+		free(type);
+
+		if(($$.result_name = (char *) malloc(sizeof(char) * (strlen(new_name) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$.result_name, new_name);
+		break;
+
+	}
 	;
 
 logical_or_expression
 	: logical_and_expression
+	{
+		$$.result_name = $1.result_name;
+	}
 	| logical_or_expression OR_OP logical_and_expression
+	{
+		char *label_one;
+		char *label_end;
+		char necessary_cast = 0;
+
+		char *type1 = function_get_type(&current_function, $1.result_name, NULL, 0);
+		char *type2 = function_get_type(&current_function, $3.result_name, NULL, 0);
+		char *type = implicit_cast_type(type1, type2, NULL, 0);
+		char *new_name = unique_var_name(&current_function, type);
+
+		char *tmp;
+
+		necessary_cast = strcmp(type1, type2);
+
+		if(new_name == NULL)
+		{
+			//обдумать поведение в данном случае
+			yyerror("error: variable not exists");
+		}
+
+		if((tmp = (char *)malloc(sizeof(char) * (strlen($3.result_name) + strlen($1.result_name) + 64))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if((label_one = unique_label_name(NULL, 0)) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		if((label_end = unique_label_name(NULL, 0)) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+
+		sprintf(tmp, "cmp %s, 0", $1.result_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "jne %s", label_one);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "cmp %s, 0", $3.result_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "jne %s", label_one);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "mov %s, 0", new_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "jmp %s", label_end);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "%s: mov %s, 1", label_one, new_name);
+		function_add_command(&current_function, tmp);
+
+		sprintf(tmp, "%s:", label_end);
+		function_add_command(&current_function, tmp);
+
+		free(label_one);
+		free(label_end);
+
+		free(tmp);
+		free($1.result_name);
+		free($3.result_name);
+		free(type1);
+		free(type2);
+		free(type);
+
+		if(($$.result_name = (char *) malloc(sizeof(char) * (strlen(new_name) + 1))) == NULL)
+			yyerror("internal error: memory allocation failed");
+
+		strcpy($$.result_name, new_name);
+		break;
+	}
 	;
 
 conditional_expression
 	: logical_or_expression
+	{
+		$$.result_name = $1.result_name;
+	}
 	| logical_or_expression '?' expression ':' conditional_expression
+	{
+		
+	}
 	;
 
 assignment_expression
